@@ -1,0 +1,91 @@
+import { Plus } from 'lucide-react';
+import { getImageUrl } from '../../utils/imageUrl';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+  unlimitedStock: boolean;
+  image?: string;
+  categoryId: string;
+  category?: { id: string; name: string };
+  isCombo?: boolean;
+}
+
+interface ProductCardProps {
+  product: Product;
+  onAdd: (product: Product) => void;
+  trackInventory: boolean;
+}
+
+export default function ProductCard({ product, onAdd, trackInventory }: ProductCardProps) {
+  const available = isProductAvailable(product, trackInventory);
+  const stockInfo = getStockDisplay(product, trackInventory);
+
+  return (
+    <div
+      className={`bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden transition-all hover:border-green-600/30 active:scale-[0.98] ${
+        !available ? 'opacity-50 pointer-events-none' : ''
+      }`}
+    >
+      <div className="aspect-square bg-gray-800 flex items-center justify-center overflow-hidden relative">
+        {product.image ? (
+          <img
+            src={getImageUrl(product.image)}
+            alt={product.name}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center text-gray-700">
+            <span className="text-4xl sm:text-5xl">📦</span>
+            <span className="text-[10px] mt-1 text-gray-600">{product.name.slice(0, 20)}</span>
+          </div>
+        )}
+        {product.isCombo && (
+          <span className="absolute top-2 right-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full">
+            COMBO
+          </span>
+        )}
+        {stockInfo && (
+          <span className={`absolute bottom-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded-full bg-black/70 ${stockInfo.color}`}>
+            {stockInfo.text}
+          </span>
+        )}
+      </div>
+      <div className="p-2.5 sm:p-3">
+        <h3 className="text-white text-xs sm:text-sm font-medium line-clamp-2 leading-tight">{product.name}</h3>
+        <div className="flex items-center justify-between mt-1.5">
+          <p className="text-green-400 font-bold text-sm sm:text-base">
+            ${product.price.toLocaleString('es-AR')}
+          </p>
+          <button
+            onClick={() => onAdd(product)}
+            disabled={!available}
+            className="bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white rounded-full p-1.5 sm:p-2 transition-all active:scale-90 disabled:bg-gray-800 disabled:text-gray-600"
+            aria-label={`Agregar ${product.name}`}
+          >
+            <Plus size={16} className="sm:hidden" />
+            <Plus size={18} className="hidden sm:inline" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function isProductAvailable(product: Product, trackInventory: boolean): boolean {
+  if (!trackInventory) return true;
+  if (product.unlimitedStock) return true;
+  return product.stock > 0;
+}
+
+function getStockDisplay(product: Product, trackInventory: boolean): { text: string; color: string } | null {
+  if (!trackInventory) return null;
+  if (product.unlimitedStock) return null;
+  if (product.stock === 0) return { text: 'Sin stock', color: 'text-red-400' };
+  if (product.stock <= 10) return { text: `Últimas ${product.stock} uds`, color: 'text-yellow-400' };
+  return null;
+}

@@ -1,8 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Search, MapPin, Phone, Mail, Trash2, Plus, Minus, Package, X } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/Toast';
+import { useCartPersistence } from '../hooks/useCartPersistence';
+import StoreHeader from '../components/store/StoreHeader';
+import QuickSearch from '../components/store/QuickSearch';
+import CombosSection from '../components/store/CombosSection';
+import CategoryTabs from '../components/store/CategoryTabs';
+import ProductGrid from '../components/store/ProductGrid';
+import LocationMap from '../components/store/LocationMap';
+import PaymentMethods from '../components/store/PaymentMethods';
+import WhatsAppButton from '../components/store/WhatsAppButton';
+import CheckoutSheet from '../components/store/CheckoutSheet';
+import PromoBanner from '../components/store/PromoBanner';
 
 interface Category {
   id: string;
@@ -14,366 +25,225 @@ interface Product {
   name: string;
   price: number;
   stock: number;
+  unlimitedStock: boolean;
+  image?: string;
   categoryId: string;
   category?: { id: string; name: string };
+  isCombo?: boolean;
 }
 
-interface CartItem {
-  product: Product;
-  quantity: number;
+const allTimeSlots = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30', '00:00', '00:30'];
+
+function getAvailableSlots() {
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+  return allTimeSlots.filter(slot => {
+    const [h, m] = slot.split(':').map(Number);
+    const slotMinutes = h * 60 + m;
+    const currentMinutes = currentHour * 60 + currentMinute;
+    if (h < 12) return true;
+    return slotMinutes > currentMinutes;
+  });
 }
 
-const categoryIcons: Record<string, string> = {
-  Bebidas: '🥤',
-  Snacks: '🍿',
-  Alcohol: '🍺',
-  Helados: '🍦',
-};
-
-const Store = () => {
-  const { isAuthenticated } = useAuth();
+export default function Store() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
+
+  const {
+    cart, cartTotal, cartCount,
+    addToCart, updateQuantity, removeFromCart, clearCart
+  } = useCartPersistence();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
-  const [orderSuccess, setOrderSuccess] = useState(false);
-  const [orderError, setOrderError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [trackInventory, setTrackInventory] = useState(true);
+  const [timeSlots] = useState<string[]>(getAvailableSlots);
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    let cancelled = false;
+    async function load() {
       try {
-        const [catRes, prodRes] = await Promise.all([
-          api.get('/categories'),
-          api.get('/products'),
-        ]);
-        setCategories(catRes.data);
-        setProducts(prodRes.data);
-        if (catRes.data.length > 0) {
-          setSelectedCategory(catRes.data[0].id);
-        }
-      } catch (error) {
-        console.error('Error loading store data:', error);
-      } finally {
-        setLoadingProducts(false);
-      }
-    };
-    fetchData();
+        const res = await api.get('/categories');
+        if (!cancelled) setCategories(res.data);
+      } catch { /* silent */ }
+      try {
+        const res = await api.get('/products');
+        if (!cancelled) setProducts(res.data);
+      } catch { /* silent */ }
+      try {
+        const res = await api.get('/settings');
+        if (!cancelled) setTrackInventory(res.data.trackInventory === 'true');
+      } catch { /* silent */ }
+    }
+    load();
+    return () => { cancelled = true; };
   }, []);
 
-  const filteredProducts = products.filter((p) => {
-    const matchesCategory = selectedCategory ? p.categoryId === selectedCategory : true;
-    const matchesSearch = search.trim() === '' || p.name.toLowerCase().includes(search.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
 
-  const addToCart = (product: Product) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { product, quantity: 1 }];
-    });
-  };
+  function handleAddToCart(product: Product) {
+    addToCart(product);
+    showToast(`${product.name} agregado`, 'success');
+  }
 
-  const removeFromCart = (productId: string) => {
-    setCart((prev) => prev.filter((item) => item.product.id !== productId));
-  };
-
-  const updateQuantity = (productId: string, delta: number) => {
-    setCart((prev) =>
-      prev
-        .map((item) =>
-          item.product.id === productId
-            ? { ...item, quantity: item.quantity + delta }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
-  };
-
-  const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-  const handleCheckout = async () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
+  async function handleCheckout(
+    deliveryType: 'pickup' | 'delivery',
+    address: string,
+    phone: string,
+    notes: string,
+    deliveryTime: string
+  ) {
     if (cart.length === 0) return;
+    if (deliveryType === 'delivery') {
+      if (!address.trim()) { showToast('Ingresá tu dirección', 'error'); return; }
+      if (!phone.trim()) { showToast('Ingresá tu teléfono', 'error'); return; }
+      if (!deliveryTime) { showToast('Seleccioná un horario', 'error'); return; }
+    }
 
+    setLoading(true);
     try {
       await api.post('/orders', {
         total: cartTotal,
-        items: cart.map((item) => ({
+        items: cart.map(item => ({
           productId: item.product.id,
           quantity: item.quantity,
           price: item.product.price,
         })),
+        deliveryType,
+        address: deliveryType === 'delivery' ? address : undefined,
+        phone: deliveryType === 'delivery' ? phone : undefined,
+        notes: deliveryType === 'delivery' ? notes : undefined,
+        deliveryTime: deliveryType === 'delivery' ? deliveryTime : undefined,
       });
-      setCart([]);
-      setOrderSuccess(true);
-      setOrderError('');
-      setTimeout(() => setOrderSuccess(false), 3000);
-    } catch (err: any) {
-      setOrderError(err.response?.data?.message || 'Error al procesar el pedido.');
+      showToast('Pedido realizado con éxito', 'success');
+      clearCart();
+    } catch (err) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      const msg = typeof axiosErr === 'object' && axiosErr !== null ? axiosErr.response?.data?.message : undefined;
+      showToast(msg || 'Error al realizar el pedido', 'error');
+    } finally {
+      setLoading(false);
     }
-  };
+  }
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = !searchQuery || product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !selectedCategory || product.categoryId === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Top Banner */}
-      <header className="bg-gray-900 text-white py-3 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="bg-green-500 rounded-lg p-2">
-              <Package className="h-6 w-6 text-white" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">MiDrugstore</span>
-          </div>
-          <div className="flex items-center gap-5 text-sm text-gray-300 flex-wrap">
-            <span className="flex items-center gap-1">
-              <MapPin className="h-4 w-4 text-green-400" /> San Martín 123
-            </span>
-            <span className="flex items-center gap-1">
-              <Phone className="h-4 w-4 text-green-400" /> 345-4110830
-            </span>
-            <span className="flex items-center gap-1">
-              <Mail className="h-4 w-4 text-green-400" /> contacto@midrugstore.com
-            </span>
-          </div>
-          {isAuthenticated ? (
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="text-xs bg-green-600 hover:bg-green-700 transition-colors px-3 py-1.5 rounded-full font-medium"
-            >
-              Panel Admin
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate('/login')}
-              className="text-xs bg-green-600 hover:bg-green-700 transition-colors px-3 py-1.5 rounded-full font-medium"
-            >
-              Ingresar
-            </button>
-          )}
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-950">
+      <StoreHeader cartCount={cartCount} onCartClick={() => {
+        if (cartCount === 0) { showToast('Carrito vacío!', 'error'); return; }
+        setCartOpen(true);
+      }} />
 
-      {/* Delivery Mode Bar */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-4 text-sm">
-          <div className="flex bg-gray-100 rounded-full p-1 gap-1">
-            <button className="bg-gray-900 text-white px-4 py-1.5 rounded-full font-medium text-xs">
-              Delivery
-            </button>
-            <button className="text-gray-600 px-4 py-1.5 rounded-full font-medium text-xs hover:bg-gray-200 transition-colors">
-              Para retirar
-            </button>
+      <section className="bg-gradient-to-br from-gray-900 via-gray-900 to-green-950 pt-6 pb-8 px-3 sm:px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="flex justify-center mb-3">
+            <img src="/logo.jpeg" alt="Barba Negra" className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-lg" />
           </div>
-          <span className="text-gray-400">Horario: 10:00 a 23:00</span>
-          <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-medium">Disponible</span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">Barba Negra Drugstore</h2>
+          <p className="text-gray-400 text-sm sm:text-lg mb-4">Tu Drugstore, siempre cerca tuyo</p>
+          <div className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-gray-800/60 border border-gray-700 rounded-full px-4 py-2 text-xs sm:text-sm text-gray-300">
+            <span>📌 H. Primo ESQ Balcarce</span>
+            <span className="text-gray-600">•</span>
+            <span>🕐 Lun a Sáb 8:00 - 20:00</span>
+          </div>
+        </div>
+      </section>
+
+      <div className="sticky top-[56px] z-40 bg-gray-950/90 backdrop-blur pt-3 pb-1.5">
+        <QuickSearch
+          products={products.map(p => ({ id: p.id, name: p.name, price: p.price }))}
+          onSelect={(productId) => {
+            setSelectedCategory(null);
+            setSearchQuery(products.find(p => p.id === productId)?.name || '');
+          }}
+          onSearch={handleSearch}
+        />
+      </div>
+
+      <PromoBanner />
+
+      <CombosSection
+        products={products}
+        onAdd={handleAddToCart}
+        trackInventory={trackInventory}
+      />
+
+      <CategoryTabs
+        categories={categories}
+        selected={selectedCategory}
+        onSelect={setSelectedCategory}
+      />
+
+      <ProductGrid
+        products={filteredProducts}
+        onAdd={handleAddToCart}
+        trackInventory={trackInventory}
+      />
+
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4">
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🏪</span>
+            <div>
+              <p className="text-white font-medium text-sm">¿Envío a domicilio?</p>
+              <p className="text-gray-500 text-xs">Seleccioná retiro o delivery en el carrito</p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              if (!isAuthenticated) { navigate('/login'); return; }
+            }}
+            className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors"
+          >
+            {isAuthenticated ? 'Ir al carrito' : 'Ingresá para pedir'}
+          </button>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="max-w-7xl mx-auto w-full px-4 py-6 flex gap-6 flex-1">
-        {/* Left: Catalog */}
-        <div className="flex-1 min-w-0">
-          {/* Search */}
-          <div className="relative mb-5">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar productos..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm outline-none focus:ring-2 focus:ring-green-400 transition-all"
-            />
-          </div>
+      <LocationMap />
+      <PaymentMethods />
 
-          {/* Category Tabs */}
-          <div className="flex gap-3 mb-6 overflow-x-auto pb-1">
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap border-2 ${
-                selectedCategory === null
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-transparent bg-white text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              <span className="text-xl">🛒</span>
-              <span>Todo</span>
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap border-2 ${
-                  selectedCategory === cat.id
-                    ? 'border-green-500 bg-green-50 text-green-700'
-                    : 'border-transparent bg-white text-gray-500 hover:bg-gray-50'
-                }`}
-              >
-                <span className="text-xl">{categoryIcons[cat.name] || '📦'}</span>
-                <span>{cat.name.toUpperCase()}</span>
-              </button>
-            ))}
-          </div>
+      <CheckoutSheet
+        cart={cart}
+        cartTotal={cartTotal}
+        cartCount={cartCount}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeFromCart}
+        onClearCart={clearCart}
+        onCheckout={handleCheckout}
+        isAuthenticated={isAuthenticated}
+        loading={loading}
+        timeSlots={timeSlots}
+        isOpen={cartOpen}
+        onOpen={() => setCartOpen(true)}
+        onClose={() => setCartOpen(false)}
+      />
 
-          {/* Category Title */}
-          {selectedCategory && (
-            <h2 className="text-base font-bold text-gray-700 uppercase mb-3 tracking-wide">
-              {categories.find((c) => c.id === selectedCategory)?.name}
-            </h2>
-          )}
+      <WhatsAppButton
+        cartItems={cart}
+        cartCount={cartCount}
+      />
 
-          {/* Products Grid */}
-          {loadingProducts ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white rounded-xl h-28 animate-pulse border border-gray-100" />
-              ))}
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
-              <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No se encontraron productos.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {filteredProducts.map((product) => (
-                <button
-                  key={product.id}
-                  onClick={() => addToCart(product)}
-                  disabled={product.stock === 0}
-                  className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-between hover:shadow-md hover:border-green-200 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <div className="flex-1 min-w-0 pr-4">
-                    <p className="font-semibold text-gray-800 text-sm truncate group-hover:text-green-700 transition-colors">
-                      {product.name}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      Stock: {product.stock === 0 ? 'Sin stock' : product.stock}
-                    </p>
-                    <p className="text-green-600 font-bold mt-1 text-base">
-                      ${product.price.toLocaleString('es-AR')}
-                    </p>
-                  </div>
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-50 to-green-100 rounded-lg flex items-center justify-center text-3xl flex-shrink-0">
-                    {categoryIcons[product.category?.name || ''] || '📦'}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+      <footer className="border-t border-gray-800 py-6 px-3 sm:px-4 mt-8">
+        <div className="max-w-7xl mx-auto text-center text-gray-600 text-xs">
+          <p className="mb-1">Barba Negra Drugstore &copy; {new Date().getFullYear()}</p>
+          <p>Humberto Primo ESQ Balcarce, Concordia, Entre Ríos</p>
         </div>
-
-        {/* Right: Cart Sidebar */}
-        <aside className="w-80 flex-shrink-0 hidden lg:block">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm sticky top-6 overflow-hidden">
-            <div className="bg-gray-900 text-white px-5 py-4 flex items-center justify-between">
-              <h2 className="font-bold text-base">Mi pedido</h2>
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                    {cartCount}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {orderSuccess && (
-              <div className="bg-green-50 border-b border-green-100 px-5 py-3 text-green-700 text-sm font-medium">
-                ✅ ¡Pedido realizado con éxito!
-              </div>
-            )}
-            {orderError && (
-              <div className="bg-red-50 border-b border-red-100 px-5 py-3 text-red-600 text-sm">
-                {orderError}
-              </div>
-            )}
-
-            <div className="p-4 flex flex-col gap-4 min-h-64">
-              {cart.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-48 text-gray-400">
-                  <ShoppingCart className="h-12 w-12 mb-3 opacity-20" />
-                  <p className="text-sm">Pedido vacío</p>
-                  <p className="text-xs mt-1">Agregá productos al carrito</p>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-                    {cart.map((item) => (
-                      <div key={item.product.id} className="flex items-center gap-3 text-sm">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-800 truncate text-xs leading-tight">
-                            {item.product.name}
-                          </p>
-                          <p className="text-green-600 font-semibold text-xs">
-                            ${(item.product.price * item.quantity).toLocaleString('es-AR')}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1.5 bg-gray-100 rounded-lg p-0.5">
-                          <button
-                            onClick={() => updateQuantity(item.product.id, -1)}
-                            className="p-0.5 hover:text-green-600 transition-colors"
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </button>
-                          <span className="w-5 text-center font-bold text-xs">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.product.id, 1)}
-                            className="p-0.5 hover:text-green-600 transition-colors"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => removeFromCart(item.product.id)}
-                          className="text-gray-300 hover:text-red-500 transition-colors"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="border-t border-gray-100 pt-4 space-y-3">
-                    <div className="flex justify-between items-center font-bold text-gray-800">
-                      <span>Total</span>
-                      <span className="text-green-600 text-lg">${cartTotal.toLocaleString('es-AR')}</span>
-                    </div>
-                    <button
-                      onClick={handleCheckout}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors text-sm"
-                    >
-                      {isAuthenticated ? 'Confirmar pedido' : 'Iniciar sesión para pedir'}
-                    </button>
-                    <button
-                      onClick={() => setCart([])}
-                      className="w-full text-gray-400 hover:text-red-500 text-xs flex items-center justify-center gap-1 transition-colors"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" /> Vaciar carrito
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </aside>
-      </div>
+      </footer>
     </div>
   );
-};
-
-export default Store;
+}
