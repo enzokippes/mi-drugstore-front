@@ -23,8 +23,9 @@ const Login = () => {
       const { user, token } = response.data;
       login(token, user);
       navigate(user.role === 'ADMIN' ? '/dashboard' : '/');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión.');
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      setError(axiosErr.response?.data?.message || 'Error al iniciar sesión.');
       setShake(true);
       setTimeout(() => setShake(false), 500);
     } finally {

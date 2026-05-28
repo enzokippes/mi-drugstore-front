@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
-import { useCartPersistence } from '../hooks/useCartPersistence';
 import StoreHeader from '../components/store/StoreHeader';
 import QuickSearch from '../components/store/QuickSearch';
 import CombosSection from '../components/store/CombosSection';
@@ -14,23 +14,7 @@ import PaymentMethods from '../components/store/PaymentMethods';
 import WhatsAppButton from '../components/store/WhatsAppButton';
 import CheckoutSheet from '../components/store/CheckoutSheet';
 import PromoBanner from '../components/store/PromoBanner';
-
-interface Category {
-  id: string;
-  name: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  stock: number;
-  unlimitedStock: boolean;
-  image?: string;
-  categoryId: string;
-  category?: { id: string; name: string };
-  isCombo?: boolean;
-}
+import type { Category, Product } from '../types';
 
 const allTimeSlots = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30', '00:00', '00:30'];
 
@@ -51,17 +35,14 @@ export default function Store() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { showToast } = useToast();
-
-  const {
-    cart, cartTotal, cartCount,
-    addToCart, updateQuantity, removeFromCart, clearCart
-  } = useCartPersistence();
+  const { cart, cartTotal, cartCount, addToCart, updateQuantity, removeFromCart, clearCart } = useCart();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [trackInventory, setTrackInventory] = useState(true);
   const [timeSlots] = useState<string[]>(getAvailableSlots);
   const [cartOpen, setCartOpen] = useState(false);
@@ -81,6 +62,7 @@ export default function Store() {
         const res = await api.get('/settings');
         if (!cancelled) setTrackInventory(res.data.trackInventory === 'true');
       } catch { /* silent */ }
+      if (!cancelled) setInitialLoading(false);
     }
     load();
     return () => { cancelled = true; };
@@ -111,22 +93,36 @@ export default function Store() {
 
     setLoading(true);
     try {
-      await api.post('/orders', {
+      const res = await api.post('/orders', {
         total: cartTotal,
         items: cart.map(item => ({
           productId: item.product.id,
           quantity: item.quantity,
           price: item.product.price,
         })),
-        deliveryType,
+        deliveryType: deliveryType.toUpperCase(),
         address: deliveryType === 'delivery' ? address : undefined,
         phone: deliveryType === 'delivery' ? phone : undefined,
         notes: deliveryType === 'delivery' ? notes : undefined,
         deliveryTime: deliveryType === 'delivery' ? deliveryTime : undefined,
       });
+
+      const orderId = res.data.id;
+
+      try {
+        const prefRes = await api.post('/payments/create-preference', { orderId });
+        if (prefRes.data?.init_point) {
+          clearCart();
+          window.location.href = prefRes.data.init_point;
+          return;
+        }
+      } catch {
+        // MP not configured, continue with normal flow
+      }
+
       showToast('Pedido realizado con éxito', 'success');
       clearCart();
-    } catch (err) {
+    } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
       const msg = typeof axiosErr === 'object' && axiosErr !== null ? axiosErr.response?.data?.message : undefined;
       showToast(msg || 'Error al realizar el pedido', 'error');
@@ -148,74 +144,94 @@ export default function Store() {
         setCartOpen(true);
       }} />
 
-      <section className="bg-gradient-to-br from-gray-900 via-gray-900 to-green-950 pt-6 pb-8 px-3 sm:px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="flex justify-center mb-3">
-            <img src="/logo.jpeg" alt="Barba Negra" className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-lg" />
-          </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">Barba Negra Drugstore</h2>
-          <p className="text-gray-400 text-sm sm:text-lg mb-4">Tu Drugstore, siempre cerca tuyo</p>
-          <div className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-gray-800/60 border border-gray-700 rounded-full px-4 py-2 text-xs sm:text-sm text-gray-300">
-            <span>📌 H. Primo ESQ Balcarce</span>
-            <span className="text-gray-600">•</span>
-            <span>🕐 Lun a Sáb 8:00 - 20:00</span>
-          </div>
-        </div>
-      </section>
-
-      <div className="sticky top-[56px] z-40 bg-gray-950/90 backdrop-blur pt-3 pb-1.5">
-        <QuickSearch
-          products={products.map(p => ({ id: p.id, name: p.name, price: p.price }))}
-          onSelect={(productId) => {
-            setSelectedCategory(null);
-            setSearchQuery(products.find(p => p.id === productId)?.name || '');
-          }}
-          onSearch={handleSearch}
-        />
-      </div>
-
-      <PromoBanner />
-
-      <CombosSection
-        products={products}
-        onAdd={handleAddToCart}
-        trackInventory={trackInventory}
-      />
-
-      <CategoryTabs
-        categories={categories}
-        selected={selectedCategory}
-        onSelect={setSelectedCategory}
-      />
-
-      <ProductGrid
-        products={filteredProducts}
-        onAdd={handleAddToCart}
-        trackInventory={trackInventory}
-      />
-
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4">
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🏪</span>
-            <div>
-              <p className="text-white font-medium text-sm">¿Envío a domicilio?</p>
-              <p className="text-gray-500 text-xs">Seleccioná retiro o delivery en el carrito</p>
+      <main id="main-content">
+        <section className="bg-gradient-to-br from-gray-900 via-gray-900 to-green-950 pt-6 pb-8 px-3 sm:px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="flex justify-center mb-3">
+              <img src="/logo.jpeg" alt="Barba Negra" className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-lg" />
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">Barba Negra Drugstore</h2>
+            <p className="text-gray-400 text-sm sm:text-lg mb-4">Tu Drugstore, siempre cerca tuyo</p>
+            <div className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-gray-800/60 border border-gray-700 rounded-full px-4 py-2 text-xs sm:text-sm text-gray-300">
+              <span>📌 H. Primo ESQ Balcarce</span>
+              <span className="text-gray-600">•</span>
+              <span>🕐 Lun a Sáb 8:00 - 20:00</span>
             </div>
           </div>
-          <button
-            onClick={() => {
-              if (!isAuthenticated) { navigate('/login'); return; }
-            }}
-            className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors"
-          >
-            {isAuthenticated ? 'Ir al carrito' : 'Ingresá para pedir'}
-          </button>
-        </div>
-      </div>
+        </section>
 
-      <LocationMap />
-      <PaymentMethods />
+        <div className="sticky top-[56px] z-40 bg-gray-950/90 backdrop-blur pt-3 pb-1.5">
+          <QuickSearch
+            products={products.map(p => ({ id: p.id, name: p.name, price: p.price }))}
+            onSelect={(productId) => {
+              setSelectedCategory(null);
+              setSearchQuery(products.find(p => p.id === productId)?.name || '');
+            }}
+            onSearch={handleSearch}
+          />
+        </div>
+
+        <PromoBanner />
+
+        <CombosSection
+          products={products}
+          onAdd={handleAddToCart}
+          trackInventory={trackInventory}
+        />
+
+        <CategoryTabs
+          categories={categories}
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
+        />
+
+        {initialLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 px-3 sm:px-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden animate-pulse">
+                <div className="aspect-square bg-gray-800" />
+                <div className="p-3 space-y-2">
+                  <div className="h-4 bg-gray-800 rounded w-3/4" />
+                  <div className="h-3 bg-gray-800 rounded w-1/2" />
+                  <div className="flex justify-between items-center pt-1">
+                    <div className="h-5 bg-gray-800 rounded w-16" />
+                    <div className="h-8 bg-gray-800 rounded-lg w-20" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <ProductGrid
+            products={filteredProducts}
+            onAdd={handleAddToCart}
+            trackInventory={trackInventory}
+          />
+        )}
+
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4">
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🏪</span>
+              <div>
+                <p className="text-white font-medium text-sm">¿Envío a domicilio?</p>
+                <p className="text-gray-500 text-xs">Seleccioná retiro o delivery en el carrito</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                if (!isAuthenticated) { navigate('/login'); return; }
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors"
+            >
+              {isAuthenticated ? 'Ir al carrito' : 'Ingresá para pedir'}
+            </button>
+          </div>
+        </div>
+
+        <LocationMap />
+        <PaymentMethods />
+      </main>
 
       <CheckoutSheet
         cart={cart}

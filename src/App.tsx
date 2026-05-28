@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './components/Toast';
 import Layout from './components/Layout';
 import Login from './pages/Login';
@@ -14,6 +15,9 @@ import CategoryForm from './pages/CategoryForm';
 import Promotions from './pages/Promotions';
 import PromotionList from './pages/PromotionList';
 import PromotionForm from './pages/PromotionForm';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFailure from './pages/PaymentFailure';
+import OrderManagement from './pages/OrderManagement';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -53,10 +57,13 @@ const AppRoutes = () => (
     <Route path="/category/new" element={<AdminRoute><Layout><CategoryForm /></Layout></AdminRoute>} />
     <Route path="/category/edit/:id" element={<AdminRoute><Layout><CategoryForm /></Layout></AdminRoute>} />
     <Route path="/my-orders" element={<ProtectedRoute><Layout><MyOrders /></Layout></ProtectedRoute>} />
+    <Route path="/orders" element={<AdminRoute><Layout><OrderManagement /></Layout></AdminRoute>} />
     <Route path="/promociones" element={<Promotions />} />
     <Route path="/promotions" element={<AdminRoute><Layout><PromotionList /></Layout></AdminRoute>} />
     <Route path="/promotions/new" element={<AdminRoute><Layout><PromotionForm /></Layout></AdminRoute>} />
     <Route path="/promotions/edit/:id" element={<AdminRoute><Layout><PromotionForm /></Layout></AdminRoute>} />
+    <Route path="/payment/success" element={<ProtectedRoute><Layout><PaymentSuccess /></Layout></ProtectedRoute>} />
+    <Route path="/payment/failure" element={<ProtectedRoute><Layout><PaymentFailure /></Layout></ProtectedRoute>} />
     <Route path="*" element={<Navigate to="/" />} />
   </Routes>
 );
@@ -64,11 +71,14 @@ const AppRoutes = () => (
 function App() {
   return (
     <AuthProvider>
-      <ToastProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </ToastProvider>
+      <CartProvider>
+        <ToastProvider>
+          <a href="#main-content" className="skip-nav">Saltar al contenido</a>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </ToastProvider>
+      </CartProvider>
     </AuthProvider>
   );
 }

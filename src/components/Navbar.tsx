@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ShoppingBag, LayoutDashboard } from 'lucide-react';
+import { LogOut, ShoppingBag, LayoutDashboard, ClipboardList } from 'lucide-react';
 
 const Navbar = () => {
   const { isAuthenticated, isAdmin, user, logout } = useAuth();
@@ -25,10 +25,16 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 {isAdmin && (
-                  <Link to="/dashboard" className="flex items-center text-gray-400 hover:text-white font-medium text-sm transition-colors">
-                    <LayoutDashboard className="h-4 w-4 mr-1" />
-                    Dashboard
-                  </Link>
+                  <>
+                    <Link to="/dashboard" className="flex items-center text-gray-400 hover:text-white font-medium text-sm transition-colors">
+                      <LayoutDashboard className="h-4 w-4 mr-1" />
+                      Dashboard
+                    </Link>
+                    <Link to="/orders" className="flex items-center text-gray-400 hover:text-white font-medium text-sm transition-colors">
+                      <ClipboardList className="h-4 w-4 mr-1" />
+                      Pedidos
+                    </Link>
+                  </>
                 )}
                 <Link to="/my-orders" className="flex items-center text-gray-400 hover:text-white font-medium text-sm transition-colors">
                   <ShoppingBag className="h-4 w-4 mr-1" />

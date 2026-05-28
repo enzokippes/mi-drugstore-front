@@ -23,8 +23,9 @@ const Register = () => {
       const response = await api.post('/auth/register', { name, email, password });
       login(response.data.token, response.data.user);
       navigate('/');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al registrarse.');
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      setError(axiosErr.response?.data?.message || 'Error al registrarse.');
       setShake(true);
       setTimeout(() => setShake(false), 500);
     } finally {

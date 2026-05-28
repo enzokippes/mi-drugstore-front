@@ -3,7 +3,7 @@ import { ArrowLeft, Percent, Plus, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { getImageUrl } from '../utils/imageUrl';
-import { useCartPersistence } from '../hooks/useCartPersistence';
+import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 
 interface Promotion {
@@ -19,7 +19,7 @@ interface Promotion {
 export default function Promotions() {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { addToCart, cartCount } = useCartPersistence();
+  const { addToCart, cartCount } = useCart();
   const [promos, setPromos] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
 

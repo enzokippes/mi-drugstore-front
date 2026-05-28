@@ -1,27 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { Package, ArrowLeft, MapPin, Phone, Clock, Truck, Store as StoreIcon } from 'lucide-react';
+import { Package, ArrowLeft, MapPin, Phone, Clock, Truck, Store as StoreIcon, CheckCircle, XCircle, CreditCard } from 'lucide-react';
+import type { Order } from '../types';
 
-interface OrderItem {
-  id: string;
-  quantity: number;
-  price: number;
-  productName?: string;
-  product?: { id: string; name: string };
-}
+const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
+  PENDING: { label: 'Pendiente', color: 'bg-yellow-900/30 text-yellow-400 border-yellow-800/30', icon: Clock },
+  CONFIRMED: { label: 'Confirmado', color: 'bg-blue-900/30 text-blue-400 border-blue-800/30', icon: CheckCircle },
+  DELIVERED: { label: 'Entregado', color: 'bg-green-900/30 text-green-400 border-green-800/30', icon: CheckCircle },
+  CANCELLED: { label: 'Cancelado', color: 'bg-red-900/30 text-red-400 border-red-800/30', icon: XCircle },
+};
 
-interface Order {
-  id: string;
-  total: number;
-  deliveryType: string;
-  address?: string;
-  phone?: string;
-  notes?: string;
-  deliveryTime?: string;
-  createdAt: string;
-  items: OrderItem[];
-}
+const paymentStatusConfig: Record<string, { label: string; color: string }> = {
+  PENDING: { label: 'Pago pendiente', color: 'bg-yellow-900/30 text-yellow-400' },
+  PAID: { label: 'Pagado', color: 'bg-green-900/30 text-green-400' },
+  REJECTED: { label: 'Pago rechazado', color: 'bg-red-900/30 text-red-400' },
+};
 
 const MyOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -74,66 +68,79 @@ const MyOrders = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {orders.map((order) => (
-            <div key={order.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-              <div className="bg-gray-800/50 px-5 py-3 flex items-center justify-between border-b border-gray-800">
-                <div className="flex items-center gap-3">
-                  <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg font-semibold ${
-                    order.deliveryType === 'DELIVERY' ? 'bg-blue-900/30 text-blue-400' : 'bg-gray-700/50 text-gray-400'
-                  }`}>
-                    {order.deliveryType === 'DELIVERY' ? <Truck className="h-3 w-3" /> : <StoreIcon className="h-3 w-3" />}
-                    {order.deliveryType === 'DELIVERY' ? 'Delivery' : 'Retiro'}
+          {orders.map((order) => {
+            const sc = statusConfig[order.status] || statusConfig.PENDING;
+            const ps = paymentStatusConfig[order.paymentStatus] || paymentStatusConfig.PENDING;
+            const StatusIcon = sc.icon;
+            return (
+              <div key={order.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                <div className="bg-gray-800/50 px-5 py-3 flex flex-wrap items-center justify-between gap-2 border-b border-gray-800">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg font-semibold border ${sc.color}`}>
+                      <StatusIcon className="h-3 w-3" />
+                      {sc.label}
+                    </span>
+                    <span className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-semibold ${ps.color}`}>
+                      <CreditCard className="h-3 w-3" />
+                      {ps.label}
+                    </span>
+                    <span className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg ${
+                      order.deliveryType === 'DELIVERY' ? 'bg-blue-900/30 text-blue-400' : 'bg-gray-700/50 text-gray-400'
+                    }`}>
+                      {order.deliveryType === 'DELIVERY' ? <Truck className="h-3 w-3" /> : <StoreIcon className="h-3 w-3" />}
+                      {order.deliveryType === 'DELIVERY' ? 'Delivery' : 'Retiro'}
+                    </span>
+                    <span className="font-mono text-xs text-gray-600">#{order.id.slice(0, 8)}</span>
+                  </div>
+                  <span className="text-xs text-gray-600">
+                    {new Date(order.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>
-                  <span className="font-mono text-xs text-gray-600">#{order.id.slice(0, 8)}</span>
                 </div>
-                <span className="text-xs text-gray-600">
-                  {new Date(order.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
 
-              {order.deliveryType === 'DELIVERY' && order.address && (
-                <div className="bg-blue-900/10 px-5 py-2.5 border-b border-gray-800/50">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
-                    <div className="flex items-center gap-2 text-blue-400">
-                      <MapPin className="h-3.5 w-3.5 text-blue-500/50 flex-shrink-0" />
-                      <span>{order.address}</span>
+                {order.deliveryType === 'DELIVERY' && order.address && (
+                  <div className="bg-blue-900/10 px-5 py-2.5 border-b border-gray-800/50">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+                      <div className="flex items-center gap-2 text-blue-400">
+                        <MapPin className="h-3.5 w-3.5 text-blue-500/50 flex-shrink-0" />
+                        <span>{order.address}</span>
+                      </div>
+                      {order.phone && (
+                        <div className="flex items-center gap-2 text-blue-400">
+                          <Phone className="h-3.5 w-3.5 text-blue-500/50 flex-shrink-0" />
+                          <span>{order.phone}</span>
+                        </div>
+                      )}
+                      {order.deliveryTime && (
+                        <div className="flex items-center gap-2 text-blue-400">
+                          <Clock className="h-3.5 w-3.5 text-blue-500/50 flex-shrink-0" />
+                          <span>{order.deliveryTime} hs</span>
+                        </div>
+                      )}
+                      {order.notes && <div className="text-blue-500/70 italic">"{order.notes}"</div>}
                     </div>
-                    {order.phone && (
-                      <div className="flex items-center gap-2 text-blue-400">
-                        <Phone className="h-3.5 w-3.5 text-blue-500/50 flex-shrink-0" />
-                        <span>{order.phone}</span>
+                  </div>
+                )}
+
+                <div className="px-5 py-4">
+                  <div className="space-y-2">
+                    {order.items.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-gray-800 text-gray-500 text-xs font-bold px-2 py-0.5 rounded">x{item.quantity}</span>
+                          <span className="text-gray-300">{item.product?.name || item.productName || 'Producto'}</span>
+                        </div>
+                        <span className="text-gray-400 font-medium">${(item.price * item.quantity).toLocaleString('es-AR')}</span>
                       </div>
-                    )}
-                    {order.deliveryTime && (
-                      <div className="flex items-center gap-2 text-blue-400">
-                        <Clock className="h-3.5 w-3.5 text-blue-500/50 flex-shrink-0" />
-                        <span>{order.deliveryTime} hs</span>
-                      </div>
-                    )}
-                    {order.notes && <div className="text-blue-500/70 italic">"{order.notes}"</div>}
+                    ))}
+                  </div>
+                  <div className="border-t border-gray-800 mt-4 pt-3 flex justify-between items-center">
+                    <span className="font-semibold text-gray-500 text-sm">Total</span>
+                    <span className="text-green-500 font-bold text-xl">${order.total.toLocaleString('es-AR')}</span>
                   </div>
                 </div>
-              )}
-
-              <div className="px-5 py-4">
-                <div className="space-y-2">
-                  {order.items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="bg-gray-800 text-gray-500 text-xs font-bold px-2 py-0.5 rounded">x{item.quantity}</span>
-                        <span className="text-gray-300">{item.product?.name || item.productName || 'Producto'}</span>
-                      </div>
-                      <span className="text-gray-400 font-medium">${(item.price * item.quantity).toLocaleString('es-AR')}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="border-t border-gray-800 mt-4 pt-3 flex justify-between items-center">
-                  <span className="font-semibold text-gray-500 text-sm">Total</span>
-                  <span className="text-green-500 font-bold text-xl">${order.total.toLocaleString('es-AR')}</span>
-                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
