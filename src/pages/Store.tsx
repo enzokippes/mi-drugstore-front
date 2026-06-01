@@ -7,6 +7,7 @@ import { useToast } from '../components/Toast';
 import StoreHeader from '../components/store/StoreHeader';
 import QuickSearch from '../components/store/QuickSearch';
 import CombosSection from '../components/store/CombosSection';
+import FeaturedSection from '../components/store/FeaturedSection';
 import CategoryTabs from '../components/store/CategoryTabs';
 import ProductGrid from '../components/store/ProductGrid';
 import LocationMap from '../components/store/LocationMap';
@@ -16,16 +17,26 @@ import CheckoutSheet from '../components/store/CheckoutSheet';
 import PromoBanner from '../components/store/PromoBanner';
 import type { Category, Product } from '../types';
 
-const allTimeSlots = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30', '00:00', '00:30'];
-
-function getAvailableSlots() {
+function generateTimeSlots(): string[] {
   const now = new Date();
+  const day = now.getDay();
+  const isSunday = day === 0;
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
-  return allTimeSlots.filter(slot => {
+  const currentMinutes = currentHour * 60 + currentMinute;
+
+  const slots: string[] = [];
+  const endHour = isSunday ? 23 : 25;
+
+  for (let h = 18; h < endHour; h++) {
+    const displayHour = h >= 24 ? h - 24 : h;
+    slots.push(`${displayHour.toString().padStart(2, '0')}:00`);
+    slots.push(`${displayHour.toString().padStart(2, '0')}:30`);
+  }
+
+  return slots.filter(slot => {
     const [h, m] = slot.split(':').map(Number);
     const slotMinutes = h * 60 + m;
-    const currentMinutes = currentHour * 60 + currentMinute;
     if (h < 12) return true;
     return slotMinutes > currentMinutes;
   });
@@ -39,12 +50,13 @@ export default function Store() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [trackInventory, setTrackInventory] = useState(true);
-  const [timeSlots] = useState<string[]>(getAvailableSlots);
+  const [timeSlots] = useState<string[]>(generateTimeSlots);
   const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
@@ -57,6 +69,10 @@ export default function Store() {
       try {
         const res = await api.get('/products');
         if (!cancelled) setProducts(res.data);
+      } catch { /* silent */ }
+      try {
+        const res = await api.get('/products/featured');
+        if (!cancelled) setFeaturedProducts(res.data);
       } catch { /* silent */ }
       try {
         const res = await api.get('/settings');
@@ -82,13 +98,14 @@ export default function Store() {
     address: string,
     phone: string,
     notes: string,
-    deliveryTime: string
+    deliveryTime: string,
+    deliveryZoneId?: string
   ) {
     if (cart.length === 0) return;
     if (deliveryType === 'delivery') {
-      if (!address.trim()) { showToast('Ingresá tu dirección', 'error'); return; }
-      if (!phone.trim()) { showToast('Ingresá tu teléfono', 'error'); return; }
-      if (!deliveryTime) { showToast('Seleccioná un horario', 'error'); return; }
+      if (!address.trim()) { showToast('Ingresa tu direccion', 'error'); return; }
+      if (!phone.trim()) { showToast('Ingresa tu telefono', 'error'); return; }
+      if (!deliveryTime) { showToast('Selecciona un horario', 'error'); return; }
     }
 
     setLoading(true);
@@ -101,6 +118,7 @@ export default function Store() {
           price: item.product.price,
         })),
         deliveryType: deliveryType.toUpperCase(),
+        deliveryZoneId: deliveryType === 'delivery' ? deliveryZoneId : undefined,
         address: deliveryType === 'delivery' ? address : undefined,
         phone: deliveryType === 'delivery' ? phone : undefined,
         notes: deliveryType === 'delivery' ? notes : undefined,
@@ -117,10 +135,10 @@ export default function Store() {
           return;
         }
       } catch {
-        // MP not configured, continue with normal flow
+        // MP not configured
       }
 
-      showToast('Pedido realizado con éxito', 'success');
+      showToast('Pedido realizado con exito', 'success');
       clearCart();
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
@@ -133,29 +151,38 @@ export default function Store() {
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = !searchQuery || product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || product.categoryId === selectedCategory;
+    let matchesCategory = true;
+    if (selectedCategory) {
+      const selectedCat = categories.find(c => c.id === selectedCategory);
+      if (selectedCat && selectedCat.children && selectedCat.children.length > 0) {
+        const childIds = selectedCat.children.map(c => c.id);
+        matchesCategory = product.categoryId === selectedCategory || childIds.includes(product.categoryId);
+      } else {
+        matchesCategory = product.categoryId === selectedCategory;
+      }
+    }
     return matchesSearch && matchesCategory;
   });
 
   return (
     <div className="min-h-screen bg-gray-950">
       <StoreHeader cartCount={cartCount} onCartClick={() => {
-        if (cartCount === 0) { showToast('Carrito vacío!', 'error'); return; }
+        if (cartCount === 0) { showToast('Carrito vacio!', 'error'); return; }
         setCartOpen(true);
       }} />
 
       <main id="main-content">
-        <section className="bg-gradient-to-br from-gray-900 via-gray-900 to-green-950 pt-6 pb-8 px-3 sm:px-4">
+        <section className="bg-gradient-to-br from-gray-900 via-gray-900 to-gold-950/30 pt-6 pb-8 px-3 sm:px-4">
           <div className="max-w-4xl mx-auto text-center">
             <div className="flex justify-center mb-3">
-              <img src="/logo.jpeg" alt="Barba Negra" className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-lg" />
+              <img src="/logo.jpeg" alt="Barba Negra" className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-lg ring-2 ring-gold-500/30" />
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">Barba Negra Drugstore</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">Barba Negra <span className="gold-text">Drugstore</span></h2>
             <p className="text-gray-400 text-sm sm:text-lg mb-4">Tu Drugstore, siempre cerca tuyo</p>
-            <div className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-gray-800/60 border border-gray-700 rounded-full px-4 py-2 text-xs sm:text-sm text-gray-300">
+            <div className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 glass rounded-full px-4 py-2 text-xs sm:text-sm text-gray-300">
               <span>📌 H. Primo ESQ Balcarce</span>
               <span className="text-gray-600">•</span>
-              <span>🕐 Lun a Sáb 8:00 - 20:00</span>
+              <span>🕐 Lun a Sab 7:00 - 1:00</span>
             </div>
           </div>
         </section>
@@ -172,6 +199,12 @@ export default function Store() {
         </div>
 
         <PromoBanner />
+
+        <FeaturedSection
+          products={featuredProducts}
+          onAdd={handleAddToCart}
+          trackInventory={trackInventory}
+        />
 
         <CombosSection
           products={products}
@@ -210,21 +243,23 @@ export default function Store() {
         )}
 
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="glass rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="text-lg">🏪</span>
               <div>
-                <p className="text-white font-medium text-sm">¿Envío a domicilio?</p>
-                <p className="text-gray-500 text-xs">Seleccioná retiro o delivery en el carrito</p>
+                <p className="text-white font-medium text-sm">Envio a domicilio?</p>
+                <p className="text-gray-500 text-xs">Selecciona retiro o delivery en el carrito</p>
               </div>
             </div>
             <button
               onClick={() => {
                 if (!isAuthenticated) { navigate('/login'); return; }
+                if (cartCount === 0) { showToast('Carrito vacio!', 'error'); return; }
+                setCartOpen(true);
               }}
-              className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 gold-gradient text-gray-950 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
             >
-              {isAuthenticated ? 'Ir al carrito' : 'Ingresá para pedir'}
+              {isAuthenticated ? 'Ir al carrito' : 'Ingresa para pedir'}
             </button>
           </div>
         </div>
@@ -233,31 +268,33 @@ export default function Store() {
         <PaymentMethods />
       </main>
 
-      <CheckoutSheet
-        cart={cart}
-        cartTotal={cartTotal}
-        cartCount={cartCount}
-        onUpdateQuantity={updateQuantity}
-        onRemoveItem={removeFromCart}
-        onClearCart={clearCart}
-        onCheckout={handleCheckout}
-        isAuthenticated={isAuthenticated}
-        loading={loading}
-        timeSlots={timeSlots}
-        isOpen={cartOpen}
-        onOpen={() => setCartOpen(true)}
-        onClose={() => setCartOpen(false)}
-      />
+      {cartOpen && (
+        <CheckoutSheet
+          cart={cart}
+          cartTotal={cartTotal}
+          cartCount={cartCount}
+          onUpdateQuantity={updateQuantity}
+          onRemoveItem={removeFromCart}
+          onClearCart={clearCart}
+          onCheckout={handleCheckout}
+          isAuthenticated={isAuthenticated}
+          loading={loading}
+          timeSlots={timeSlots}
+          isOpen={cartOpen}
+          onOpen={() => setCartOpen(true)}
+          onClose={() => setCartOpen(false)}
+        />
+      )}
 
       <WhatsAppButton
         cartItems={cart}
         cartCount={cartCount}
       />
 
-      <footer className="border-t border-gray-800 py-6 px-3 sm:px-4 mt-8">
+      <footer className="border-t border-gray-800/50 py-6 px-3 sm:px-4 mt-8">
         <div className="max-w-7xl mx-auto text-center text-gray-600 text-xs">
           <p className="mb-1">Barba Negra Drugstore &copy; {new Date().getFullYear()}</p>
-          <p>Humberto Primo ESQ Balcarce, Concordia, Entre Ríos</p>
+          <p>Humberto Primo ESQ Balcarce, Concordia, Entre Rios</p>
         </div>
       </footer>
     </div>

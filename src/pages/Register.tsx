@@ -34,17 +34,18 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
-      <div className="bg-gray-900 border-b border-gray-800 py-2 px-6">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors">
+    <div className="min-h-screen bg-gray-950 flex flex-col relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-gold-950/20 via-transparent to-gold-950/10 pointer-events-none" />
+      <div className="glass-dark border-b border-gray-800/50 py-2 px-6 relative">
+        <Link to="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gold-400 transition-colors">
           <ArrowLeft className="h-4 w-4" /> Volver a la tienda
         </Link>
       </div>
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className={`bg-gray-900 border border-gray-800 p-8 rounded-2xl shadow-2xl max-w-md w-full ${shake ? 'animate-shake' : 'animate-fade-in'}`}>
+      <div className="flex-1 flex items-center justify-center p-4 relative">
+        <div className={`glass p-8 rounded-2xl shadow-2xl max-w-md w-full border border-gold-500/10 ${shake ? 'animate-shake' : 'animate-fade-in'}`}>
           <div className="flex justify-center mb-6">
-            <div className="bg-green-900/30 p-4 rounded-2xl">
-              <UserPlus className="h-10 w-10 text-green-500" />
+            <div className="bg-gold-500/10 p-4 rounded-2xl border border-gold-500/20">
+              <UserPlus className="h-10 w-10 text-gold-400" />
             </div>
           </div>
           <h2 className="text-2xl font-bold text-center text-white mb-2">Crear Cuenta</h2>
@@ -53,27 +54,27 @@ const Register = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-400 mb-1.5">Nombre</label>
-              <input type="text" required className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm" value={name} onChange={(e) => setName(e.target.value)} placeholder="Juan Pérez" />
+              <input type="text" required className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700/60 rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500 outline-none text-sm" value={name} onChange={(e) => setName(e.target.value)} placeholder="Juan Perez" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-400 mb-1.5">Email</label>
-              <input type="email" required className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
+              <input type="email" required className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700/60 rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500 outline-none text-sm" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-400 mb-1.5">Contraseña</label>
+              <label className="block text-sm font-semibold text-gray-400 mb-1.5">Contrasena</label>
               <div className="relative">
-                <input type={showPassword ? 'text' : 'password'} required className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm pr-10" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                <input type={showPassword ? 'text' : 'password'} required className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700/60 rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500 outline-none text-sm pr-10" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-400">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
-            <button type="submit" disabled={loading} className="w-full bg-green-600 text-white font-semibold py-2.5 px-4 rounded-xl hover:bg-green-700 transition-all mt-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-              {loading ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" /> : 'Registrarse'}
+            <button type="submit" disabled={loading} className="w-full gold-gradient text-gray-950 font-semibold py-2.5 px-4 rounded-xl hover:opacity-90 transition-all mt-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              {loading ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-950/30 border-t-gray-950" /> : 'Registrarse'}
             </button>
           </form>
           <p className="mt-6 text-center text-sm text-gray-500">
-            ¿Ya tenés cuenta? <Link to="/login" className="text-green-500 hover:text-green-400 font-semibold">Iniciá sesión</Link>
+            Ya tenes cuenta? <Link to="/login" className="text-gold-400 hover:text-gold-300 font-semibold">Inicia sesion</Link>
           </p>
         </div>
       </div>

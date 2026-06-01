@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useToast } from '../components/Toast';
-import { Package, Truck, Store as StoreIcon, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Package, Truck, Store as StoreIcon, Clock, CheckCircle, XCircle, Navigation } from 'lucide-react';
 import type { Order } from '../types';
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-  PENDING: { label: 'Pendiente', color: 'bg-yellow-900/30 text-yellow-400 border-yellow-800/30', icon: Clock },
+  PENDING: { label: 'Pendiente', color: 'bg-gold-900/30 text-gold-400 border-gold-800/30', icon: Clock },
   CONFIRMED: { label: 'Confirmado', color: 'bg-blue-900/30 text-blue-400 border-blue-800/30', icon: CheckCircle },
+  IN_TRANSIT: { label: 'En camino', color: 'bg-purple-900/30 text-purple-400 border-purple-800/30', icon: Navigation },
   DELIVERED: { label: 'Entregado', color: 'bg-green-900/30 text-green-400 border-green-800/30', icon: CheckCircle },
   CANCELLED: { label: 'Cancelado', color: 'bg-red-900/30 text-red-400 border-red-800/30', icon: XCircle },
 };
 
 const paymentStatusConfig: Record<string, { label: string; color: string }> = {
-  PENDING: { label: 'Pago pendiente', color: 'bg-yellow-900/30 text-yellow-400' },
+  PENDING: { label: 'Pago pendiente', color: 'bg-gold-900/30 text-gold-400' },
   PAID: { label: 'Pagado', color: 'bg-green-900/30 text-green-400' },
   REJECTED: { label: 'Pago rechazado', color: 'bg-red-900/30 text-red-400' },
 };
@@ -53,7 +54,7 @@ export default function OrderManagement() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-800 border-t-green-500"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-800 border-t-gold-500" />
       </div>
     );
   }
@@ -66,12 +67,12 @@ export default function OrderManagement() {
       </div>
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {['ALL', 'PENDING', 'CONFIRMED', 'DELIVERED', 'CANCELLED'].map(s => (
+        {['ALL', 'PENDING', 'CONFIRMED', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED'].map(s => (
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors ${
-              filter === s ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+            className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
+              filter === s ? 'gold-gradient text-gray-950' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700/50'
             }`}
           >
             {s === 'ALL' ? 'Todos' : statusConfig[s]?.label}
@@ -80,7 +81,7 @@ export default function OrderManagement() {
       </div>
 
       {filteredOrders.length === 0 ? (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-16 text-center">
+        <div className="glass rounded-xl p-16 text-center border border-gray-800/50">
           <Package className="h-12 w-12 text-gray-600 mx-auto mb-3" />
           <p className="text-gray-500">No hay pedidos con este filtro</p>
         </div>
@@ -91,8 +92,8 @@ export default function OrderManagement() {
             const ps = paymentStatusConfig[order.paymentStatus] || paymentStatusConfig.PENDING;
             const StatusIcon = sc.icon;
             return (
-              <div key={order.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-                <div className="bg-gray-800/50 px-5 py-3 flex flex-wrap items-center justify-between gap-2 border-b border-gray-800">
+              <div key={order.id} className="glass rounded-xl overflow-hidden border border-gray-800/50">
+                <div className="bg-gray-800/30 px-5 py-3 flex flex-wrap items-center justify-between gap-2 border-b border-gray-800/50">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg font-semibold border ${sc.color}`}>
                       <StatusIcon className="h-3 w-3" />
@@ -107,6 +108,11 @@ export default function OrderManagement() {
                       {order.deliveryType === 'DELIVERY' ? <Truck className="h-3 w-3" /> : <StoreIcon className="h-3 w-3" />}
                       {order.deliveryType === 'DELIVERY' ? 'Delivery' : 'Retiro'}
                     </span>
+                    {order.deliveryZone && (
+                      <span className="text-xs px-2.5 py-1 rounded-lg bg-blue-900/20 text-blue-400">
+                        {order.deliveryZone.name}
+                      </span>
+                    )}
                     <span className="font-mono text-xs text-gray-600">#{order.id.slice(0, 8)}</span>
                   </div>
                   <div className="text-right">
@@ -114,6 +120,15 @@ export default function OrderManagement() {
                     {order.user && <p className="text-xs text-gray-500">{order.user.name}</p>}
                   </div>
                 </div>
+
+                {order.deliveryType === 'DELIVERY' && order.address && (
+                  <div className="bg-blue-900/10 px-5 py-2 border-b border-gray-800/50 text-xs text-blue-400 flex flex-wrap gap-3">
+                    <span>📍 {order.address}</span>
+                    {order.phone && <span>📞 {order.phone}</span>}
+                    {order.deliveryTime && <span>🕐 {order.deliveryTime}</span>}
+                    {order.notes && <span className="italic">"{order.notes}"</span>}
+                  </div>
+                )}
 
                 <div className="px-5 py-3">
                   <div className="space-y-1.5 mb-3">
@@ -128,15 +143,27 @@ export default function OrderManagement() {
                     ))}
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-800">
-                    <span className="text-green-500 font-bold text-lg">${order.total.toLocaleString('es-AR')}</span>
+                  {order.deliveryCost !== undefined && order.deliveryCost > 0 && (
+                    <div className="flex items-center justify-between text-xs mb-2 text-gray-500">
+                      <span>Envio</span>
+                      <span>${order.deliveryCost.toLocaleString('es-AR')}</span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-800/50">
+                    <span className="gold-text font-bold text-lg">${order.total.toLocaleString('es-AR')}</span>
                     <div className="flex gap-2">
-                      {order.status !== 'CONFIRMED' && (
+                      {order.status === 'PENDING' && (
                         <button onClick={() => updateStatus(order.id, 'CONFIRMED')} className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors">
                           Confirmar
                         </button>
                       )}
-                      {order.status !== 'DELIVERED' && (
+                      {(order.status === 'CONFIRMED' || order.status === 'PENDING') && (
+                        <button onClick={() => updateStatus(order.id, 'IN_TRANSIT')} className="px-3 py-1.5 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition-colors">
+                          En camino
+                        </button>
+                      )}
+                      {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && (
                         <button onClick={() => updateStatus(order.id, 'DELIVERED')} className="px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors">
                           Entregar
                         </button>

@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { X, Minus, Plus, CheckCircle, ShoppingCart, Trash2, Store as StoreIcon, Truck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Minus, Plus, CheckCircle, ShoppingCart, Trash2, Store as StoreIcon, Truck, MapPin } from 'lucide-react';
+import api from '../../services/api';
+import type { DeliveryZone, Address } from '../../types';
 
 interface Product {
   id: string;
@@ -19,7 +21,7 @@ interface CheckoutSheetProps {
   onUpdateQuantity: (productId: string, delta: number) => void;
   onRemoveItem: (productId: string) => void;
   onClearCart: () => void;
-  onCheckout: (deliveryType: 'pickup' | 'delivery', address: string, phone: string, notes: string, deliveryTime: string) => void;
+  onCheckout: (deliveryType: 'pickup' | 'delivery', address: string, phone: string, notes: string, deliveryTime: string, deliveryZoneId?: string) => void;
   isAuthenticated: boolean;
   loading: boolean;
   timeSlots: string[];
@@ -50,6 +52,53 @@ export default function CheckoutSheet({
   const [notes, setNotes] = useState('');
   const [deliveryTime, setDeliveryTime] = useState('');
   const [error, setError] = useState('');
+  const [zones, setZones] = useState<DeliveryZone[]>([]);
+  const [selectedZone, setSelectedZone] = useState<string>('');
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadZones() {
+      try {
+        const res = await api.get('/delivery-zones?active=true');
+        if (!cancelled) setZones(res.data);
+      } catch { /* silent */ }
+    }
+    loadZones();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (deliveryType === 'delivery' && isAuthenticated) {
+      let cancelled = false;
+      async function loadAddresses() {
+        try {
+          const res = await api.get('/addresses');
+          if (!cancelled) setSavedAddresses(res.data);
+        } catch { /* silent */ }
+      }
+      loadAddresses();
+      return () => { cancelled = true; };
+    } else {
+      setSavedAddresses([]);
+    }
+  }, [deliveryType, isAuthenticated]);
+
+  useEffect(() => {
+    if (deliveryType === 'delivery' && zones.length > 0 && !selectedZone) {
+      setSelectedZone(zones[0].id);
+    }
+  }, [deliveryType, zones, selectedZone]);
+
+  const selectedZoneData = zones.find(z => z.id === selectedZone);
+  const deliveryCost = selectedZoneData ? selectedZoneData.basePrice + selectedZoneData.surcharge : 0;
+  const finalTotal = cartTotal + (deliveryType === 'delivery' ? deliveryCost : 0);
+
+  function selectSavedAddress(addr: Address) {
+    setAddress(`${addr.street} ${addr.number}`);
+    setNotes(addr.notes || '');
+    if (addr.zoneId) setSelectedZone(addr.zoneId);
+  }
 
   if (cartCount === 0) return null;
 
@@ -60,17 +109,19 @@ export default function CheckoutSheet({
         setStep('delivery_form');
         return;
       }
-      if (!address.trim()) { setError('Ingresá tu dirección'); return; }
-      if (!phone.trim()) { setError('Ingresá tu teléfono'); return; }
-      if (!deliveryTime) { setError('Seleccioná un horario'); return; }
+      if (!selectedZone) { setError('Selecciona una zona de entrega'); return; }
+      if (!address.trim()) { setError('Ingresa tu direccion'); return; }
+      if (!phone.trim()) { setError('Ingresa tu telefono'); return; }
+      if (!deliveryTime) { setError('Selecciona un horario'); return; }
     }
-    onCheckout(deliveryType, address, phone, notes, deliveryTime);
+    onCheckout(deliveryType, address, phone, notes, deliveryTime, deliveryType === 'delivery' ? selectedZone : undefined);
     onClose();
     setStep('cart');
     setAddress('');
     setPhone('');
     setNotes('');
     setDeliveryTime('');
+    setSelectedZone('');
     setError('');
   }
 
@@ -91,7 +142,7 @@ export default function CheckoutSheet({
     <>
       <button
         onClick={handleOpen}
-        className="lg:hidden fixed bottom-6 right-6 z-50 bg-green-600 text-white p-4 rounded-full shadow-lg shadow-green-600/30 hover:bg-green-700 transition-all hover:scale-110 active:scale-95"
+        className="lg:hidden fixed bottom-6 right-6 z-50 gold-gradient text-gray-950 p-4 rounded-full shadow-lg shadow-gold-500/30 hover:opacity-90 transition-all hover:scale-110 active:scale-95"
         aria-label="Ver carrito"
       >
         <ShoppingCart className="h-5 w-5" />
@@ -101,20 +152,21 @@ export default function CheckoutSheet({
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" onClick={handleClose}>
+        <div className="fixed inset-0 z-50 bg-black/80" onClick={handleClose}>
           <div
-            className="absolute bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 rounded-t-3xl max-h-[85vh] flex flex-col animate-slide-up"
+            className="absolute bottom-0 left-0 right-0 bg-gray-900 border-t border-gold-500/20 rounded-t-3xl max-h-[85vh] flex flex-col transition-transform duration-200 ease-out"
             onClick={e => e.stopPropagation()}
+            style={{ transform: 'translateY(0)' }}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 shrink-0">
               <div>
                 <h2 className="font-bold text-white text-base">
-                  {step === 'cart' ? 'Mi pedido' : 'Datos de envío'}
+                  {step === 'cart' ? 'Mi pedido' : 'Datos de envio'}
                 </h2>
                 {step === 'delivery_form' && (
                   <button
                     onClick={() => setStep('cart')}
-                    className="text-green-400 text-xs mt-0.5 hover:underline"
+                    className="text-gold-400 text-xs mt-0.5 hover:underline"
                   >
                     ← Volver al carrito
                   </button>
@@ -129,14 +181,14 @@ export default function CheckoutSheet({
               <>
                 <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
                   {cart.map(item => (
-                    <div key={item.product.id} className="flex items-center gap-3 bg-gray-800/60 rounded-xl p-3">
+                    <div key={item.product.id} className="flex items-center gap-3 bg-gray-800/60 rounded-xl p-3 border border-gray-700/30">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-white truncate text-sm">{item.product.name}</p>
-                        <p className="text-green-400 font-semibold text-xs mt-0.5">
+                        <p className="gold-text font-semibold text-xs mt-0.5">
                           ${(item.product.price * item.quantity).toLocaleString('es-AR')}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1 bg-gray-700 rounded-lg p-0.5">
+                      <div className="flex items-center gap-1 bg-gray-700/80 rounded-lg p-0.5 border border-gray-600/30">
                         <button onClick={() => onUpdateQuantity(item.product.id, -1)} className="p-1.5 text-gray-400 hover:text-white">
                           <Minus className="h-3 w-3" />
                         </button>
@@ -162,7 +214,7 @@ export default function CheckoutSheet({
                     <button
                       onClick={() => setDeliveryType('pickup')}
                       className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all ${
-                        deliveryType === 'pickup' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400'
+                        deliveryType === 'pickup' ? 'gold-gradient text-gray-950' : 'bg-gray-800 text-gray-400 border border-gray-700/50'
                       }`}
                     >
                       <StoreIcon size={15} />
@@ -171,7 +223,7 @@ export default function CheckoutSheet({
                     <button
                       onClick={() => { if (isAuthenticated) setDeliveryType('delivery'); }}
                       className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-medium transition-all ${
-                        deliveryType === 'delivery' ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400'
+                        deliveryType === 'delivery' ? 'gold-gradient text-gray-950' : 'bg-gray-800 text-gray-400 border border-gray-700/50'
                       }`}
                     >
                       <Truck size={15} />
@@ -179,22 +231,59 @@ export default function CheckoutSheet({
                     </button>
                   </div>
 
+                  {deliveryType === 'delivery' && zones.length > 0 && (
+                    <div>
+                      <label className="text-gray-400 text-xs mb-1.5 block flex items-center gap-1">
+                        <MapPin size={12} />
+                        Zona de entrega
+                      </label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {zones.map(zone => (
+                          <button
+                            key={zone.id}
+                            onClick={() => setSelectedZone(zone.id)}
+                            className={`px-3 py-2 rounded-lg text-xs font-medium transition-all text-left ${
+                              selectedZone === zone.id
+                                ? 'bg-gold-500/20 text-gold-400 border border-gold-500/50'
+                                : 'bg-gray-800 text-gray-300 border border-gray-700/50 hover:border-gray-600'
+                            }`}
+                          >
+                            <span className="block">{zone.name}</span>
+                            <span className="text-[10px] opacity-70">${(zone.basePrice + zone.surcharge).toLocaleString('es-AR')}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {error && (
                     <p className="text-red-400 text-xs text-center">{error}</p>
                   )}
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm">Total</span>
-                    <span className="text-green-400 font-bold text-xl">${cartTotal.toLocaleString('es-AR')}</span>
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400 text-sm">Productos</span>
+                      <span className="text-white text-sm">${cartTotal.toLocaleString('es-AR')}</span>
+                    </div>
+                    {deliveryType === 'delivery' && selectedZoneData && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400 text-sm">Envio ({selectedZoneData.name})</span>
+                        <span className="text-white text-sm">${deliveryCost.toLocaleString('es-AR')}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-1 border-t border-gray-800">
+                      <span className="text-gray-400 text-sm font-medium">Total</span>
+                      <span className="gold-text font-bold text-xl">${finalTotal.toLocaleString('es-AR')}</span>
+                    </div>
                   </div>
 
                   <button
                     onClick={handleConfirm}
                     disabled={loading}
-                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                    className="w-full gold-gradient hover:opacity-90 disabled:opacity-50 text-gray-950 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
                   >
                     {loading ? (
-                      <span className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
+                      <span className="animate-spin w-5 h-5 border-2 border-gray-950/30 border-t-gray-950 rounded-full" />
                     ) : (
                       <>
                         <CheckCircle size={18} />
@@ -208,26 +297,77 @@ export default function CheckoutSheet({
 
             {step === 'delivery_form' && (
               <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 flex flex-col">
+                {savedAddresses.length > 0 && (
+                  <div>
+                    <label className="text-gray-400 text-xs mb-1.5 block flex items-center gap-1">
+                      <MapPin size={12} />
+                      Direcciones guardadas
+                    </label>
+                    <div className="space-y-1.5">
+                      {savedAddresses.map(addr => (
+                        <button
+                          key={addr.id}
+                          onClick={() => selectSavedAddress(addr)}
+                          className={`w-full text-left px-3 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 ${
+                            address === `${addr.street} ${addr.number}`
+                              ? 'bg-gold-500/20 text-gold-400 border border-gold-500/50'
+                              : 'bg-gray-800/80 text-gray-300 border border-gray-700/50 hover:border-gray-600'
+                          }`}
+                        >
+                          <MapPin size={14} className="shrink-0 text-gold-400/60" />
+                          <div className="min-w-0">
+                            <span className="font-medium block truncate">{addr.label}: {addr.street} {addr.number}</span>
+                            {addr.notes && <span className="text-[10px] text-gray-500 block truncate">{addr.notes}</span>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-gray-400 text-xs mb-1.5 block flex items-center gap-1">
+                    <MapPin size={12} />
+                    Zona de entrega *
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {zones.map(zone => (
+                      <button
+                        key={zone.id}
+                        onClick={() => setSelectedZone(zone.id)}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-all text-left ${
+                          selectedZone === zone.id
+                            ? 'bg-gold-500/20 text-gold-400 border border-gold-500/50'
+                            : 'bg-gray-800 text-gray-300 border border-gray-700/50 hover:border-gray-600'
+                        }`}
+                      >
+                        <span className="block">{zone.name}</span>
+                        <span className="text-[10px] opacity-70">${(zone.basePrice + zone.surcharge).toLocaleString('es-AR')}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <input
                   type="text"
-                  placeholder="Dirección de entrega *"
+                  placeholder="Direccion de entrega *"
                   value={address}
                   onChange={e => setAddress(e.target.value)}
-                  className="bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-500"
+                  className="bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500/30"
                 />
                 <input
                   type="tel"
-                  placeholder="Teléfono de contacto *"
+                  placeholder="Telefono de contacto *"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
-                  className="bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-500"
+                  className="bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500/30"
                 />
                 <textarea
                   placeholder="Notas adicionales (opcional)"
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   rows={2}
-                  className="bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-500 resize-none"
+                  className="bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500/30 resize-none"
                 />
                 <div>
                   <label className="text-gray-400 text-xs mb-2 block">Horario de entrega</label>
@@ -239,7 +379,7 @@ export default function CheckoutSheet({
                           onClick={() => setDeliveryTime(slot)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                             deliveryTime === slot
-                              ? 'bg-green-600 text-white'
+                              ? 'gold-gradient text-gray-950'
                               : 'bg-gray-800 text-gray-300 border border-gray-700'
                           }`}
                         >
@@ -252,6 +392,19 @@ export default function CheckoutSheet({
                   )}
                 </div>
 
+                {selectedZoneData && (
+                  <div className="bg-gray-800/60 rounded-xl p-3 border border-gold-500/20">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400 text-sm">Envio ({selectedZoneData.name})</span>
+                      <span className="gold-text font-bold">${deliveryCost.toLocaleString('es-AR')}</span>
+                    </div>
+                    <div className="flex justify-between items-center mt-1 pt-1 border-t border-gray-700">
+                      <span className="text-white text-sm font-medium">Total con envio</span>
+                      <span className="gold-text font-bold text-lg">${finalTotal.toLocaleString('es-AR')}</span>
+                    </div>
+                  </div>
+                )}
+
                 {error && (
                   <p className="text-red-400 text-xs text-center">{error}</p>
                 )}
@@ -259,10 +412,10 @@ export default function CheckoutSheet({
                 <button
                   onClick={handleConfirm}
                   disabled={loading}
-                  className="mt-auto w-full bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  className="mt-auto w-full gold-gradient hover:opacity-90 disabled:opacity-50 text-gray-950 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
                 >
                   {loading ? (
-                    <span className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
+                    <span className="animate-spin w-5 h-5 border-2 border-gray-950/30 border-t-gray-950 rounded-full" />
                   ) : (
                     <>
                       <CheckCircle size={18} />

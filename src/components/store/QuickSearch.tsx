@@ -60,13 +60,13 @@ export default function QuickSearch({ products, onSelect, onSearch }: QuickSearc
           value={query}
           onChange={e => { setQuery(e.target.value); setShowResults(true); }}
           onFocus={() => { if (query.trim()) setShowResults(true); }}
-          className="w-full bg-gray-800/90 border border-gray-700/80 text-white rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/50 transition-all placeholder:text-gray-500"
+          className="w-full bg-gray-800/80 border border-gray-700/60 text-white rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500/30 transition-all placeholder:text-gray-500"
         />
         {query && (
           <button
             onClick={() => { setQuery(''); setShowResults(false); inputRef.current?.focus(); }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
-            aria-label="Limpiar búsqueda"
+            aria-label="Limpiar busqueda"
           >
             <X size={16} />
           </button>
@@ -79,10 +79,10 @@ export default function QuickSearch({ products, onSelect, onSearch }: QuickSearc
                 <button
                   key={p.id}
                   onClick={() => handleSelect(p.id)}
-                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors text-left"
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-700/80 transition-colors text-left"
                 >
                   <span className="text-white truncate">{p.name}</span>
-                  <span className="text-green-400 font-medium ml-3 shrink-0">${p.price.toLocaleString('es-AR')}</span>
+                  <span className="gold-text font-medium ml-3 shrink-0">${p.price.toLocaleString('es-AR')}</span>
                 </button>
               ))
             ) : (
