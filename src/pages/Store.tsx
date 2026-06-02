@@ -159,14 +159,14 @@ export default function Store() {
       }} />
 
       <main id="main-content">
-        <section className="bg-gradient-to-br from-gray-900 via-gray-900 to-gold-950/30 pt-6 pb-8 px-3 sm:px-4">
+        <section className="bg-gradient-to-br from-gray-900 via-gray-900 to-gold-950/30 pt-4 pb-6 px-3 sm:px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="flex justify-center mb-3">
-              <img src="/logo.jpeg" alt="Barba Negra" className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-lg ring-2 ring-gold-500/30" />
+            <div className="flex justify-center mb-2">
+              <img src="/logo.jpeg" alt="Barba Negra" className="w-14 h-14 sm:w-18 sm:h-18 rounded-xl object-cover shadow-lg ring-2 ring-gold-500/30" />
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">Barba Negra <span className="gold-text">Drugstore</span></h2>
-            <p className="text-gray-400 text-sm sm:text-lg mb-4">Tu Drugstore, siempre cerca tuyo</p>
-            <div className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 glass rounded-full px-4 py-2 text-xs sm:text-sm text-gray-300">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1">Barba Negra <span className="gold-text">Drugstore</span></h2>
+            <p className="text-gray-400 text-xs sm:text-base mb-3">Tu Drugstore, siempre cerca tuyo</p>
+            <div className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 glass rounded-full px-3 py-1.5 text-[10px] sm:text-xs text-gray-300">
               <span>📌 H. Primo ESQ Balcarce</span>
               <span className="text-gray-600">•</span>
               <span>🕐 Lun a Sab 7:00 - 1:00</span>
@@ -206,16 +206,16 @@ export default function Store() {
         />
 
         {initialLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 px-3 sm:px-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden animate-pulse">
-                <div className="aspect-square bg-gray-800" />
-                <div className="p-3 space-y-2">
-                  <div className="h-4 bg-gray-800 rounded w-3/4" />
-                  <div className="h-3 bg-gray-800 rounded w-1/2" />
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-2.5 px-2 sm:px-3">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden animate-pulse">
+                <div className="aspect-[4/3] bg-gray-800" />
+                <div className="p-2 space-y-1.5">
+                  <div className="h-3 bg-gray-800 rounded w-3/4" />
+                  <div className="h-2.5 bg-gray-800 rounded w-1/2" />
                   <div className="flex justify-between items-center pt-1">
-                    <div className="h-5 bg-gray-800 rounded w-16" />
-                    <div className="h-8 bg-gray-800 rounded-lg w-20" />
+                    <div className="h-4 bg-gray-800 rounded w-14" />
+                    <div className="h-6 bg-gray-800 rounded-lg w-14" />
                   </div>
                 </div>
               </div>

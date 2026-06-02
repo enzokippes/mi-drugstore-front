@@ -23,15 +23,15 @@ export default function FeaturedSection({ products, onAdd, trackInventory }: Fea
   if (products.length === 0) return null;
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Star size={20} className="text-gold-400" />
-        <h3 className="text-white font-bold text-lg">Los mas pedidos</h3>
+    <div className="max-w-7xl mx-auto px-2 sm:px-3 py-3">
+      <div className="flex items-center gap-2 mb-2">
+        <Star size={18} className="text-gold-400" />
+        <h3 className="text-white font-bold text-sm sm:text-base">Los mas pedidos</h3>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+      <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
         {products.map(product => (
-          <div key={product.id} className="w-44 sm:w-52 shrink-0 snap-start">
+          <div key={product.id} className="w-32 sm:w-40 shrink-0 snap-start">
             <ProductCard
               product={product}
               onAdd={onAdd}

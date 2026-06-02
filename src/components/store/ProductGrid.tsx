@@ -30,7 +30,7 @@ export default function ProductGrid({ products, onAdd, trackInventory }: Product
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 px-3 sm:px-4">
+    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-2.5 px-2 sm:px-3">
       {products.map(product => (
         <ProductCard
           key={product.id}

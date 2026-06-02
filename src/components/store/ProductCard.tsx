@@ -26,12 +26,12 @@ export default function ProductCard({ product, onAdd, trackInventory }: ProductC
 
   return (
     <div
-      className={`bg-gray-900/80 border border-gray-800/80 rounded-2xl overflow-hidden transition-all card-hover ${
+      className={`bg-gray-900/80 border border-gray-800/80 rounded-xl overflow-hidden transition-all card-hover ${
         !available ? 'opacity-50 pointer-events-none' : 'hover:border-gold-500/30'
       }`}
     >
       <Link to={`/producto/${product.id}`} className="block">
-        <div className="aspect-square bg-gray-800/50 flex items-center justify-center overflow-hidden relative">
+        <div className="aspect-[4/3] bg-gray-800/50 flex items-center justify-center overflow-hidden relative">
           {product.image ? (
             <img
               src={getImageUrl(product.image)}
@@ -42,38 +42,38 @@ export default function ProductCard({ product, onAdd, trackInventory }: ProductC
             />
           ) : (
             <div className="flex flex-col items-center justify-center text-gray-700">
-              <span className="text-4xl sm:text-5xl">📦</span>
-              <span className="text-[10px] mt-1 text-gray-600">{product.name.slice(0, 20)}</span>
+              <span className="text-3xl sm:text-4xl">📦</span>
+              <span className="text-[9px] mt-1 text-gray-600">{product.name.slice(0, 15)}</span>
             </div>
           )}
           {product.isCombo && (
-            <span className="absolute top-2 right-2 bg-gradient-to-r from-gold-400 to-gold-600 text-gray-950 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg">
+            <span className="absolute top-1.5 right-1.5 bg-gradient-to-r from-gold-400 to-gold-600 text-gray-950 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">
               COMBO
             </span>
           )}
           {stockInfo && (
-            <span className={`absolute bottom-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded-full bg-black/80 backdrop-blur-sm ${stockInfo.color}`}>
+            <span className={`absolute bottom-1.5 left-1.5 text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-black/80 backdrop-blur-sm ${stockInfo.color}`}>
               {stockInfo.text}
             </span>
           )}
         </div>
       </Link>
-      <div className="p-2.5 sm:p-3">
+      <div className="p-2 sm:p-2.5">
         <Link to={`/producto/${product.id}`} className="block">
-          <h3 className="text-white text-xs sm:text-sm font-medium line-clamp-2 leading-tight">{product.name}</h3>
+          <h3 className="text-white text-[11px] sm:text-xs font-medium line-clamp-2 leading-tight">{product.name}</h3>
         </Link>
-        <div className="flex items-center justify-between mt-1.5">
-          <p className="gold-text font-bold text-sm sm:text-base">
+        <div className="flex items-center justify-between mt-1">
+          <p className="gold-text font-bold text-xs sm:text-sm">
             ${product.price.toLocaleString('es-AR')}
           </p>
           <button
             onClick={() => onAdd(product)}
             disabled={!available}
-            className="bg-gold-500/20 hover:bg-gold-500 text-gold-400 hover:text-gray-950 rounded-full p-1.5 sm:p-2 transition-all active:scale-90 disabled:bg-gray-800 disabled:text-gray-600 border border-gold-500/30 hover:border-gold-500"
+            className="bg-gold-500/20 hover:bg-gold-500 text-gold-400 hover:text-gray-950 rounded-full p-1 sm:p-1.5 transition-all active:scale-90 disabled:bg-gray-800 disabled:text-gray-600 border border-gold-500/30 hover:border-gold-500"
             aria-label={`Agregar ${product.name}`}
           >
-            <Plus size={16} className="sm:hidden" />
-            <Plus size={18} className="hidden sm:inline" />
+            <Plus size={14} className="sm:hidden" />
+            <Plus size={16} className="hidden sm:inline" />
           </button>
         </div>
       </div>

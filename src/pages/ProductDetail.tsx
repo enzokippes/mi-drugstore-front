@@ -78,10 +78,10 @@ export default function ProductDetail() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
-        <div className="glass rounded-2xl overflow-hidden border border-gray-800/50">
+      <main className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        <div className="glass rounded-xl overflow-hidden border border-gray-800/50">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-            <div className="aspect-square bg-gray-800/50 flex items-center justify-center relative">
+            <div className="aspect-[4/3] sm:aspect-square bg-gray-800/50 flex items-center justify-center relative">
               {product.image ? (
                 <img
                   src={getImageUrl(product.image)}
@@ -159,25 +159,25 @@ export default function ProductDetail() {
         </div>
 
         {related.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-white font-bold text-lg mb-4">Productos relacionados</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="mt-6">
+            <h3 className="text-white font-bold text-base sm:text-lg mb-3">Productos relacionados</h3>
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
               {related.map(p => (
                 <Link
                   key={p.id}
                   to={`/producto/${p.id}`}
-                  className="glass rounded-2xl overflow-hidden border border-gray-800/50 card-hover"
+                  className="glass rounded-xl overflow-hidden border border-gray-800/50 card-hover"
                 >
-                  <div className="aspect-square bg-gray-800/50 flex items-center justify-center">
+                  <div className="aspect-[4/3] bg-gray-800/50 flex items-center justify-center">
                     {p.image ? (
                       <img src={getImageUrl(p.image)} alt={p.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-4xl">📦</span>
+                      <span className="text-3xl">📦</span>
                     )}
                   </div>
-                  <div className="p-3">
-                    <p className="text-white text-xs font-medium line-clamp-2">{p.name}</p>
-                    <p className="gold-text font-bold text-sm mt-1">${p.price.toLocaleString('es-AR')}</p>
+                  <div className="p-2">
+                    <p className="text-white text-[11px] font-medium line-clamp-2">{p.name}</p>
+                    <p className="gold-text font-bold text-xs mt-0.5">${p.price.toLocaleString('es-AR')}</p>
                   </div>
                 </Link>
               ))}
