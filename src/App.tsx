@@ -15,8 +15,6 @@ import CategoryForm from './pages/CategoryForm';
 import Promotions from './pages/Promotions';
 import PromotionList from './pages/PromotionList';
 import PromotionForm from './pages/PromotionForm';
-import PaymentSuccess from './pages/PaymentSuccess';
-import PaymentFailure from './pages/PaymentFailure';
 import OrderManagement from './pages/OrderManagement';
 import Points from './pages/Points';
 import ProductDetail from './pages/ProductDetail';
@@ -74,8 +72,6 @@ const AppRoutes = () => (
     <Route path="/promotions" element={<AdminRoute><Layout><PromotionList /></Layout></AdminRoute>} />
     <Route path="/promotions/new" element={<AdminRoute><Layout><PromotionForm /></Layout></AdminRoute>} />
     <Route path="/promotions/edit/:id" element={<AdminRoute><Layout><PromotionForm /></Layout></AdminRoute>} />
-    <Route path="/payment/success" element={<ProtectedRoute><Layout><PaymentSuccess /></Layout></ProtectedRoute>} />
-    <Route path="/payment/failure" element={<ProtectedRoute><Layout><PaymentFailure /></Layout></ProtectedRoute>} />
     <Route path="*" element={<Navigate to="/" />} />
   </Routes>
 );

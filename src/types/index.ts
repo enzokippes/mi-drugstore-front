@@ -61,8 +61,6 @@ export interface Order {
   notes?: string;
   deliveryTime?: string;
   status: 'PENDING' | 'CONFIRMED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
-  paymentStatus: 'PENDING' | 'PAID' | 'REJECTED';
-  paymentId?: string;
   createdAt: string;
   items: OrderItem[];
   deliveryZone?: DeliveryZone | null;

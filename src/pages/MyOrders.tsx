@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { Package, ArrowLeft, MapPin, Phone, Clock, Truck, Store as StoreIcon, CheckCircle, XCircle, CreditCard, Navigation } from 'lucide-react';
+import { Package, ArrowLeft, MapPin, Phone, Clock, Truck, Store as StoreIcon, CheckCircle, XCircle, Navigation } from 'lucide-react';
 import type { Order } from '../types';
 
 const statusSteps = ['PENDING', 'CONFIRMED', 'IN_TRANSIT', 'DELIVERED'];
@@ -12,12 +12,6 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
   IN_TRANSIT: { label: 'En camino', color: 'bg-purple-900/30 text-purple-400 border-purple-800/30', icon: Navigation },
   DELIVERED: { label: 'Entregado', color: 'bg-green-900/30 text-green-400 border-green-800/30', icon: CheckCircle },
   CANCELLED: { label: 'Cancelado', color: 'bg-red-900/30 text-red-400 border-red-800/30', icon: XCircle },
-};
-
-const paymentStatusConfig: Record<string, { label: string; color: string }> = {
-  PENDING: { label: 'Pago pendiente', color: 'bg-gold-900/30 text-gold-400' },
-  PAID: { label: 'Pagado', color: 'bg-green-900/30 text-green-400' },
-  REJECTED: { label: 'Pago rechazado', color: 'bg-red-900/30 text-red-400' },
 };
 
 function OrderTracker({ status }: { status: string }) {
@@ -114,7 +108,6 @@ const MyOrders = () => {
         <div className="space-y-4">
           {orders.map((order) => {
             const sc = statusConfig[order.status] || statusConfig.PENDING;
-            const ps = paymentStatusConfig[order.paymentStatus] || paymentStatusConfig.PENDING;
             const StatusIcon = sc.icon;
             return (
               <div key={order.id} className="glass rounded-xl overflow-hidden border border-gray-800/50">
@@ -123,10 +116,6 @@ const MyOrders = () => {
                     <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg font-semibold border ${sc.color}`}>
                       <StatusIcon className="h-3 w-3" />
                       {sc.label}
-                    </span>
-                    <span className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg font-semibold ${ps.color}`}>
-                      <CreditCard className="h-3 w-3" />
-                      {ps.label}
                     </span>
                     <span className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg ${
                       order.deliveryType === 'DELIVERY' ? 'bg-blue-900/30 text-blue-400' : 'bg-gray-700/50 text-gray-400'

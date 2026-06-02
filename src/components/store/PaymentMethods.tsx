@@ -4,14 +4,6 @@ export default function PaymentMethods() {
       <h3 className="text-white font-bold text-sm mb-3">Medios de pago</h3>
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
         <div className="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 snap-start shrink-0">
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2" y="4" width="20" height="16" rx="3" fill="#009EE3" />
-            <path d="M9.5 12.5L11 14L14.5 10" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="text-gray-300 text-xs sm:text-sm whitespace-nowrap">Mercado Pago</span>
-        </div>
-
-        <div className="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 snap-start shrink-0">
           <div className="flex gap-1">
             <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="2" y="4" width="20" height="16" rx="3" fill="#1A1F71" />

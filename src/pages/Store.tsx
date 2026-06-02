@@ -110,7 +110,7 @@ export default function Store() {
 
     setLoading(true);
     try {
-      const res = await api.post('/orders', {
+      await api.post('/orders', {
         total: cartTotal,
         items: cart.map(item => ({
           productId: item.product.id,
@@ -124,19 +124,6 @@ export default function Store() {
         notes: deliveryType === 'delivery' ? notes : undefined,
         deliveryTime: deliveryType === 'delivery' ? deliveryTime : undefined,
       });
-
-      const orderId = res.data.id;
-
-      try {
-        const prefRes = await api.post('/payments/create-preference', { orderId });
-        if (prefRes.data?.init_point) {
-          clearCart();
-          window.location.href = prefRes.data.init_point;
-          return;
-        }
-      } catch {
-        // MP not configured
-      }
 
       showToast('Pedido realizado con exito', 'success');
       clearCart();

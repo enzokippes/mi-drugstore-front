@@ -12,12 +12,6 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
   CANCELLED: { label: 'Cancelado', color: 'bg-red-900/30 text-red-400 border-red-800/30', icon: XCircle },
 };
 
-const paymentStatusConfig: Record<string, { label: string; color: string }> = {
-  PENDING: { label: 'Pago pendiente', color: 'bg-gold-900/30 text-gold-400' },
-  PAID: { label: 'Pagado', color: 'bg-green-900/30 text-green-400' },
-  REJECTED: { label: 'Pago rechazado', color: 'bg-red-900/30 text-red-400' },
-};
-
 export default function OrderManagement() {
   const { showToast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -89,7 +83,6 @@ export default function OrderManagement() {
         <div className="space-y-3">
           {filteredOrders.map(order => {
             const sc = statusConfig[order.status] || statusConfig.PENDING;
-            const ps = paymentStatusConfig[order.paymentStatus] || paymentStatusConfig.PENDING;
             const StatusIcon = sc.icon;
             return (
               <div key={order.id} className="glass rounded-xl overflow-hidden border border-gray-800/50">
@@ -98,9 +91,6 @@ export default function OrderManagement() {
                     <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg font-semibold border ${sc.color}`}>
                       <StatusIcon className="h-3 w-3" />
                       {sc.label}
-                    </span>
-                    <span className={`text-xs px-2.5 py-1 rounded-lg font-semibold ${ps.color}`}>
-                      {ps.label}
                     </span>
                     <span className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg ${
                       order.deliveryType === 'DELIVERY' ? 'bg-blue-900/30 text-blue-400' : 'bg-gray-700/50 text-gray-400'
