@@ -25,19 +25,16 @@ export default function OrderManagement() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
 
-  const totalPages = Math.ceil(total / limit);
-
-  useEffect(() => {
-    fetchOrders();
-  }, [page, statusFilter, deliveryTypeFilter]);
+  const totalPages = total > 0 ? Math.ceil(total / limit) : 1;
 
   async function fetchOrders() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', limit.toString());
+      params.append('page', String(page));
+      params.append('limit', String(limit));
       if (statusFilter !== 'ALL') params.append('status', statusFilter);
       if (deliveryTypeFilter !== 'ALL') params.append('deliveryType', deliveryTypeFilter);
       if (search) params.append('search', search);
@@ -45,22 +42,35 @@ export default function OrderManagement() {
       if (dateTo) params.append('dateTo', dateTo);
 
       const res = await api.get(`/orders?${params.toString()}`);
-      const data = res.data as PaginatedResponse<Order>;
-      setOrders(data.items);
-      setTotal(data.total);
-    } catch {
+      const data = res.data as PaginatedResponse<Order> | undefined;
+      
+      if (data && Array.isArray(data.items)) {
+        setOrders(data.items);
+        setTotal(typeof data.total === 'number' ? data.total : 0);
+      } else {
+        console.warn('Unexpected API response format:', data);
+        setOrders([]);
+        setTotal(0);
+      }
+    } catch (err) {
+      console.error('Error fetching orders:', err);
       showToast('Error al cargar pedidos', 'error');
+      setOrders([]);
+      setTotal(0);
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   }
 
   useEffect(() => {
+    fetchOrders();
+  }, [page, statusFilter, deliveryTypeFilter]);
+
+  useEffect(() => {
     const debounce = setTimeout(() => {
-      if (search || dateFrom || dateTo) {
-        setPage(1);
-        fetchOrders();
-      }
+      setPage(1);
+      fetchOrders();
     }, 500);
     return () => clearTimeout(debounce);
   }, [search, dateFrom, dateTo]);
@@ -87,7 +97,7 @@ export default function OrderManagement() {
 
   const hasActiveFilters = search || dateFrom || dateTo || statusFilter !== 'ALL' || deliveryTypeFilter !== 'ALL';
 
-  if (loading && orders.length === 0) {
+  if (loading && initialLoad) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-800 border-t-gold-500" />
@@ -200,12 +210,23 @@ export default function OrderManagement() {
         ))}
       </div>
 
-      {orders.length === 0 ? (
+      {loading && !initialLoad && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-800 border-t-gold-500" />
+        </div>
+      )}
+
+      {!loading && orders.length === 0 ? (
         <div className="glass rounded-xl p-16 text-center border border-gray-800/50">
           <Package className="h-12 w-12 text-gray-600 mx-auto mb-3" />
           <p className="text-gray-500">No hay pedidos con este filtro</p>
+          {hasActiveFilters && (
+            <button onClick={clearFilters} className="mt-3 text-sm text-gold-400 hover:text-gold-300 underline">
+              Limpiar filtros
+            </button>
+          )}
         </div>
-      ) : (
+      ) : !loading && orders.length > 0 ? (
         <>
           <div className="space-y-3">
             {orders.map(order => {
@@ -249,15 +270,17 @@ export default function OrderManagement() {
 
                   <div className="px-5 py-3">
                     <div className="space-y-1.5 mb-3">
-                      {order.items.map(item => (
-                        <div key={item.id} className="flex items-center justify-between text-sm">
+                      {order.items && order.items.length > 0 ? order.items.map(item => (
+                        <div key={item.id || Math.random()} className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-2">
                             <span className="bg-gray-800 text-gray-500 text-xs font-bold px-2 py-0.5 rounded">x{item.quantity}</span>
                             <span className="text-gray-300">{item.product?.name || item.productName || 'Producto'}</span>
                           </div>
                           <span className="text-gray-400">${(item.price * item.quantity).toLocaleString('es-AR')}</span>
                         </div>
-                      ))}
+                      )) : (
+                        <p className="text-xs text-gray-500">Sin items</p>
+                      )}
                     </div>
 
                     {order.deliveryCost !== undefined && order.deliveryCost > 0 && (
@@ -316,11 +339,11 @@ export default function OrderManagement() {
 
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-500">
-                Pagina {page} de {totalPages || 1}
+                Pagina {page} de {totalPages}
               </span>
               <div className="flex gap-1">
                 <button
-                  onClick={() => { setPage(p => Math.max(1, p - 1)); }}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page <= 1}
                   className="p-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
@@ -352,7 +375,7 @@ export default function OrderManagement() {
                   );
                 })}
                 <button
-                  onClick={() => { setPage(p => Math.min(totalPages, p + 1)); }}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                   className="p-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
@@ -362,7 +385,7 @@ export default function OrderManagement() {
             </div>
           </div>
         </>
-      )}
+      ) : null}
     </div>
   );
 }
