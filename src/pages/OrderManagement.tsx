@@ -42,16 +42,24 @@ export default function OrderManagement() {
       if (dateTo) params.append('dateTo', dateTo);
 
       const res = await api.get(`/orders?${params.toString()}`);
-      const data = res.data as PaginatedResponse<Order> | undefined;
-      
-      if (data && Array.isArray(data.items)) {
-        setOrders(data.items);
-        setTotal(typeof data.total === 'number' ? data.total : 0);
+      const data = res.data;
+
+      let ordersArray: Order[] = [];
+      let totalCount = 0;
+
+      if (Array.isArray(data)) {
+        ordersArray = data;
+        totalCount = data.length;
+      } else if (data && typeof data === 'object' && 'items' in data) {
+        const paginatedData = data as PaginatedResponse<Order>;
+        ordersArray = Array.isArray(paginatedData.items) ? paginatedData.items : [];
+        totalCount = typeof paginatedData.total === 'number' ? paginatedData.total : ordersArray.length;
       } else {
         console.warn('Unexpected API response format:', data);
-        setOrders([]);
-        setTotal(0);
       }
+
+      setOrders(ordersArray);
+      setTotal(totalCount);
     } catch (err) {
       console.error('Error fetching orders:', err);
       showToast('Error al cargar pedidos', 'error');
