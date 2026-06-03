@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { UserPlus, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { UserPlus, ArrowLeft, Eye, EyeOff, Check, X } from 'lucide-react';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -14,6 +14,14 @@ const Register = () => {
   const [shake, setShake] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const passwordChecks = useMemo(() => ({
+    hasMinLength: password.length >= 8,
+    hasUppercase: /[A-Z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+  }), [password]);
+
+  const isPasswordValid = passwordChecks.hasMinLength && passwordChecks.hasUppercase && passwordChecks.hasNumber;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,8 +76,24 @@ const Register = () => {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {password && (
+                <div className="mt-2 space-y-1">
+                  <div className={`flex items-center gap-2 text-xs ${passwordChecks.hasMinLength ? 'text-green-400' : 'text-red-400'}`}>
+                    {passwordChecks.hasMinLength ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                    <span>Al menos 8 caracteres</span>
+                  </div>
+                  <div className={`flex items-center gap-2 text-xs ${passwordChecks.hasUppercase ? 'text-green-400' : 'text-red-400'}`}>
+                    {passwordChecks.hasUppercase ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                    <span>Al menos una mayuscula</span>
+                  </div>
+                  <div className={`flex items-center gap-2 text-xs ${passwordChecks.hasNumber ? 'text-green-400' : 'text-red-400'}`}>
+                    {passwordChecks.hasNumber ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                    <span>Al menos un numero</span>
+                  </div>
+                </div>
+              )}
             </div>
-            <button type="submit" disabled={loading} className="w-full gold-gradient text-gray-950 font-semibold py-2.5 px-4 rounded-xl hover:opacity-90 transition-all mt-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            <button type="submit" disabled={loading || !isPasswordValid} className="w-full gold-gradient text-gray-950 font-semibold py-2.5 px-4 rounded-xl hover:opacity-90 transition-all mt-2 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               {loading ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-950/30 border-t-gray-950" /> : 'Registrarse'}
             </button>
           </form>
