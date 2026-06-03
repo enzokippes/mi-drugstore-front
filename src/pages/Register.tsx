@@ -32,8 +32,18 @@ const Register = () => {
       login(response.data.token, response.data.user);
       navigate('/');
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      setError(axiosErr.response?.data?.message || 'Error al registrarse.');
+      const axiosErr = err as { response?: { data?: { message?: string }; errors?: Array<{ message?: string }> } } };
+      const serverMessage = axiosErr.response?.data?.message;
+      const serverErrors = axiosErr.response?.data?.errors;
+      
+      let displayError = 'Error al registrarse.';
+      if (serverErrors && serverErrors.length > 0) {
+        displayError = serverErrors.map(e => e.message).join(', ');
+      } else if (serverMessage) {
+        displayError = serverMessage;
+      }
+      
+      setError(displayError);
       setShake(true);
       setTimeout(() => setShake(false), 500);
     } finally {
@@ -71,27 +81,25 @@ const Register = () => {
             <div>
               <label className="block text-sm font-semibold text-gray-400 mb-1.5">Contrasena</label>
               <div className="relative">
-                <input type={showPassword ? 'text' : 'password'} required className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700/60 rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500 outline-none text-sm pr-10" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                <input type={showPassword ? 'text' : 'password'} required className="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-700/60 rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500 outline-none text-sm pr-10" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Minimo 8 caracteres" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-400">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {password && (
-                <div className="mt-2 space-y-1">
-                  <div className={`flex items-center gap-2 text-xs ${passwordChecks.hasMinLength ? 'text-green-400' : 'text-red-400'}`}>
-                    {passwordChecks.hasMinLength ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
-                    <span>Al menos 8 caracteres</span>
-                  </div>
-                  <div className={`flex items-center gap-2 text-xs ${passwordChecks.hasUppercase ? 'text-green-400' : 'text-red-400'}`}>
-                    {passwordChecks.hasUppercase ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
-                    <span>Al menos una mayuscula</span>
-                  </div>
-                  <div className={`flex items-center gap-2 text-xs ${passwordChecks.hasNumber ? 'text-green-400' : 'text-red-400'}`}>
-                    {passwordChecks.hasNumber ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
-                    <span>Al menos un numero</span>
-                  </div>
+              <div className="mt-3 space-y-1.5">
+                <div className={`flex items-center gap-2 text-xs ${passwordChecks.hasMinLength ? 'text-green-400' : 'text-gray-500'}`}>
+                  {passwordChecks.hasMinLength ? <Check className="h-3.5 w-3.5" /> : <div className="w-3.5 h-3.5 rounded-full border border-gray-600" />}
+                  <span>Al menos 8 caracteres</span>
                 </div>
-              )}
+                <div className={`flex items-center gap-2 text-xs ${passwordChecks.hasUppercase ? 'text-green-400' : 'text-gray-500'}`}>
+                  {passwordChecks.hasUppercase ? <Check className="h-3.5 w-3.5" /> : <div className="w-3.5 h-3.5 rounded-full border border-gray-600" />}
+                  <span>Al menos una mayuscula (A-Z)</span>
+                </div>
+                <div className={`flex items-center gap-2 text-xs ${passwordChecks.hasNumber ? 'text-green-400' : 'text-gray-500'}`}>
+                  {passwordChecks.hasNumber ? <Check className="h-3.5 w-3.5" /> : <div className="w-3.5 h-3.5 rounded-full border border-gray-600" />}
+                  <span>Al menos un numero (0-9)</span>
+                </div>
+              </div>
             </div>
             <button type="submit" disabled={loading || !isPasswordValid} className="w-full gold-gradient text-gray-950 font-semibold py-2.5 px-4 rounded-xl hover:opacity-90 transition-all mt-2 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               {loading ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-950/30 border-t-gray-950" /> : 'Registrarse'}
