@@ -6,6 +6,8 @@ import { ToastProvider } from './components/Toast';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import ProductForm from './pages/ProductForm';
 import Store from './pages/Store';
@@ -55,6 +57,8 @@ const AppRoutes = () => (
     <Route path="/producto/:id" element={<ProductDetail />} />
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
+    <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/dashboard" element={<AdminRoute><Layout><AdminDashboard /></Layout></AdminRoute>} />
     <Route path="/products" element={<AdminRoute><Layout><Dashboard /></Layout></AdminRoute>} />
     <Route path="/products/new" element={<AdminRoute><Layout><ProductForm /></Layout></AdminRoute>} />

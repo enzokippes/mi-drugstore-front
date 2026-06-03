@@ -13,7 +13,7 @@ const ProductForm = () => {
   const navigate = useNavigate();
   const isEditMode = !!id;
 
-  const [formData, setFormData] = useState({ name: '', price: '', stock: '', categoryId: '', unlimitedStock: false, isCombo: false });
+  const [formData, setFormData] = useState({ name: '', description: '', price: '', stock: '', categoryId: '', unlimitedStock: false, isCombo: false });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [existingImage, setExistingImage] = useState<string | null>(null);
@@ -44,8 +44,8 @@ const ProductForm = () => {
       const fetchProduct = async () => {
         try {
           const response = await api.get(`/products/${id}`);
-          const { name, price, stock, categoryId, unlimitedStock, image, isCombo } = response.data;
-          setFormData({ name, price: price.toString(), stock: stock.toString(), categoryId, unlimitedStock: unlimitedStock || false, isCombo: isCombo || false });
+          const { name, description, price, stock, categoryId, unlimitedStock, image, isCombo } = response.data;
+          setFormData({ name, description: description || '', price: price.toString(), stock: stock.toString(), categoryId, unlimitedStock: unlimitedStock || false, isCombo: isCombo || false });
           if (image) setExistingImage(image);
         } catch (error) {
           setError('Error al cargar el producto.');
@@ -88,6 +88,7 @@ const ProductForm = () => {
 
     const submitData = new FormData();
     submitData.append('name', formData.name);
+    submitData.append('description', formData.description);
     submitData.append('price', formData.price);
     submitData.append('categoryId', formData.categoryId);
     submitData.append('unlimitedStock', String(formData.unlimitedStock));
@@ -126,6 +127,18 @@ const ProductForm = () => {
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1.5">Nombre del Producto</label>
             <input type="text" name="name" required className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm" value={formData.name} onChange={handleChange} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-1.5">Descripcion</label>
+            <textarea
+              name="description"
+              rows={3}
+              className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-600 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm resize-none"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Descripcion opcional del producto..."
+            />
           </div>
 
           <div>

@@ -71,6 +71,13 @@ export interface Order {
   };
 }
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface Promotion {
   id: string;
   title: string;

@@ -72,6 +72,9 @@ const Login = () => {
           <p className="mt-6 text-center text-sm text-gray-500">
             No tenes cuenta? <Link to="/register" className="text-gold-400 hover:text-gold-300 font-semibold">Registrate aca</Link>
           </p>
+          <p className="mt-3 text-center text-sm">
+            <Link to="/forgot-password" className="text-gray-500 hover:text-gold-400 transition-colors">Olvidaste tu contraseña?</Link>
+          </p>
         </div>
       </div>
     </div>
