@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { UserPlus, ArrowLeft, Eye, EyeOff, Check, X } from 'lucide-react';
+import { UserPlus, ArrowLeft, Eye, EyeOff, Check } from 'lucide-react';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -32,7 +32,7 @@ const Register = () => {
       login(response.data.token, response.data.user);
       navigate('/');
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string }; errors?: Array<{ message?: string }> } } };
+      const axiosErr = err as { response?: { data?: { message?: string; errors?: { message?: string }[] } } };
       const serverMessage = axiosErr.response?.data?.message;
       const serverErrors = axiosErr.response?.data?.errors;
       
