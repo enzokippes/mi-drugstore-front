@@ -95,15 +95,7 @@ export default function AdminNav() {
                   >
                     {drawerOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                   </button>
-                  <div className="hidden lg:flex items-center gap-2">
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center text-gray-500 hover:text-red-400 transition-colors text-sm p-2 rounded-lg hover:bg-gray-800"
-                    >
-                      <LogOut className="h-4 w-4 mr-1" />
-                      Salir
-                    </button>
-                  </div>
+
                 </>
               ) : (
                 <>
