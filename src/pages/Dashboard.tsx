@@ -130,20 +130,49 @@ export default function Dashboard() {
             </button>
             {menuOpen && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-xl shadow-xl z-20 overflow-hidden">
-                  <Link to="/products/new" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 text-sm text-white hover:bg-gray-800 transition-colors">
-                    <Plus size={15} /> Agregar Producto
-                  </Link>
-                  <Link to="/categories" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
-                    <Tag size={15} /> Categorías
-                  </Link>
-                  <Link to="/promotions" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
-                    <Percent size={15} /> Promociones
-                  </Link>
-                  <Link to="/" target="_blank" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
-                    <Eye size={15} /> Ver Tienda
-                  </Link>
+                <div className="fixed inset-0 z-50" onClick={() => setMenuOpen(false)} />
+                <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-800 rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up">
+                  <div className="sticky top-0 bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between">
+                    <h3 className="text-white font-semibold">Acciones</h3>
+                    <button onClick={() => setMenuOpen(false)} className="text-gray-500 hover:text-white p-1">
+                      <ChevronDown size={20} />
+                    </button>
+                  </div>
+                  <div className="p-4 space-y-1">
+                    <Link
+                      to="/products/new"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-white bg-gold-500/10 border border-gold-500/20 font-medium"
+                    >
+                      <Plus size={18} className="text-gold-400" />
+                      Agregar Producto
+                    </Link>
+                    <Link
+                      to="/categories"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                    >
+                      <Tag size={18} />
+                      Categorías
+                    </Link>
+                    <Link
+                      to="/promotions"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                    >
+                      <Percent size={18} />
+                      Promociones
+                    </Link>
+                    <Link
+                      to="/"
+                      target="_blank"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                    >
+                      <Eye size={18} />
+                      Ver Tienda
+                    </Link>
+                  </div>
                 </div>
               </>
             )}
