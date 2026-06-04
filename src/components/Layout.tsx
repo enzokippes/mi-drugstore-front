@@ -1,9 +1,9 @@
-import Navbar from './Navbar';
+import AdminNav from './AdminNav';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
-      <Navbar />
+      <AdminNav />
       <main className="flex-grow container mx-auto px-4 py-8 max-w-7xl">
         {children}
       </main>

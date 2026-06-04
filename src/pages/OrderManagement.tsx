@@ -146,15 +146,15 @@ export default function OrderManagement() {
       </div>
 
       {showFilters && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4 space-y-3">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs text-gray-500 mb-1.5 flex items-center gap-1">
                 <Calendar className="h-3 w-3" /> Desde
               </label>
               <input
                 type="date"
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-gold-500/50 outline-none"
+                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white text-sm focus:ring-2 focus:ring-gold-500/50 outline-none"
                 value={dateFrom}
                 onChange={e => { setDateFrom(e.target.value); setPage(1); }}
               />
@@ -165,7 +165,7 @@ export default function OrderManagement() {
               </label>
               <input
                 type="date"
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-gold-500/50 outline-none"
+                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white text-sm focus:ring-2 focus:ring-gold-500/50 outline-none"
                 value={dateTo}
                 onChange={e => { setDateTo(e.target.value); setPage(1); }}
               />
@@ -173,7 +173,7 @@ export default function OrderManagement() {
             <div>
               <label className="block text-xs text-gray-500 mb-1.5">Tipo</label>
               <select
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-gold-500/50 outline-none"
+                className="w-full px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white text-sm focus:ring-2 focus:ring-gold-500/50 outline-none"
                 value={deliveryTypeFilter}
                 onChange={e => { setDeliveryTypeFilter(e.target.value); setPage(1); }}
               >
@@ -182,25 +182,17 @@ export default function OrderManagement() {
                 <option value="PICKUP">Retiro</option>
               </select>
             </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Zona</label>
-              <select
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-gold-500/50 outline-none"
-                value={deliveryTypeFilter}
-                onChange={e => { setDeliveryTypeFilter(e.target.value); setPage(1); }}
-              >
-                <option value="ALL">Todas</option>
-              </select>
+            <div className="flex items-end">
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="w-full px-4 py-2.5 text-xs text-gray-500 hover:text-gray-400 border border-gray-700 rounded-xl hover:border-gray-600 transition-colors"
+                >
+                  Limpiar filtros
+                </button>
+              )}
             </div>
           </div>
-          {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="text-xs text-gray-500 hover:text-gray-400 underline"
-            >
-              Limpiar filtros
-            </button>
-          )}
         </div>
       )}
 
@@ -242,8 +234,8 @@ export default function OrderManagement() {
               const StatusIcon = sc.icon;
               return (
                 <div key={order.id} className="glass rounded-xl overflow-hidden border border-gray-800/50">
-                  <div className="bg-gray-800/30 px-5 py-3 flex flex-wrap items-center justify-between gap-2 border-b border-gray-800/50">
-                    <div className="flex items-center gap-2 flex-wrap">
+                  <div className="bg-gray-900/50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-gray-800/50">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg font-semibold border ${sc.color}`}>
                         <StatusIcon className="h-3 w-3" />
                         {sc.label}
@@ -261,18 +253,18 @@ export default function OrderManagement() {
                       )}
                       <span className="font-mono text-xs text-gray-600">#{order.id.slice(0, 8)}</span>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs text-gray-600">{new Date(order.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
-                      {order.user && <p className="text-xs text-gray-500">{order.user.name}</p>}
+                    <div className="flex items-center gap-2 text-right">
+                      <span className="text-xs text-gray-600">{new Date(order.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                      {order.user && <span className="text-xs text-gray-500 hidden sm:inline">{order.user.name}</span>}
                     </div>
                   </div>
 
                   {order.deliveryType === 'DELIVERY' && order.address && (
-                    <div className="bg-blue-900/10 px-5 py-2 border-b border-gray-800/50 text-xs text-blue-400 flex flex-wrap gap-3">
+                    <div className="bg-blue-900/10 px-4 py-2 border-b border-gray-800/50 text-xs text-blue-400 flex flex-wrap gap-2 sm:gap-3">
                       <span>📍 {order.address}</span>
                       {order.phone && <span>📞 {order.phone}</span>}
                       {order.deliveryTime && <span>🕐 {order.deliveryTime}</span>}
-                      {order.notes && <span className="italic">"{order.notes}"</span>}
+                      {order.notes && <span className="italic truncate max-w-[150px]">"{order.notes}"</span>}
                     </div>
                   )}
 
@@ -330,66 +322,28 @@ export default function OrderManagement() {
           </div>
 
           <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-800/50">
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-500">Mostrar</span>
-              <select
-                className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-gold-500/50 outline-none"
-                value={limit}
-                onChange={e => { setLimit(parseInt(e.target.value)); setPage(1); fetchOrders(); }}
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-              <span className="text-sm text-gray-500">por pagina</span>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <span>Página</span>
+              <span className="text-white font-medium">{page}</span>
+              <span>de</span>
+              <span className="text-white font-medium">{totalPages}</span>
             </div>
 
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500">
-                Pagina {page} de {totalPages}
-              </span>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page <= 1}
-                  className="p-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum: number;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (page <= 3) {
-                    pageNum = i + 1;
-                  } else if (page >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = page - 2 + i;
-                  }
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setPage(pageNum)}
-                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
-                        page === pageNum
-                          ? 'gold-gradient text-gray-950'
-                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-                <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page >= totalPages}
-                  className="p-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="p-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="p-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </>
