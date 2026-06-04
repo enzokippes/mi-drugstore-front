@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { categoryEmojis } from '../../utils/categoryEmojis';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, LayoutGrid } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -17,6 +17,7 @@ interface CategoryTabsProps {
 
 export default function CategoryTabs({ categories, selected, onSelect }: CategoryTabsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const topCategories = categories.filter(c => !c.parentId);
 
@@ -36,11 +37,17 @@ export default function CategoryTabs({ categories, selected, onSelect }: Categor
   function handleAllClick() {
     onSelect(null);
     setExpandedId(null);
+    setMobileMenuOpen(false);
+  }
+
+  function handleMobileSelect(catId: string | null) {
+    onSelect(catId);
+    setMobileMenuOpen(false);
   }
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3">
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory hidden md:flex">
         <button
           onClick={handleAllClick}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap snap-start transition-all shrink-0 ${
@@ -99,6 +106,89 @@ export default function CategoryTabs({ categories, selected, onSelect }: Categor
             </div>
           );
         })}
+      </div>
+
+      <div className="flex md:hidden">
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all shrink-0 ${
+            mobileMenuOpen
+              ? 'gold-gradient text-gray-950'
+              : 'bg-gray-800/80 text-gray-400 hover:bg-gray-700 border border-gray-700/50'
+          }`}
+        >
+          <LayoutGrid size={16} />
+          {selected ? categories.find(c => c.id === selected)?.name || 'Categoría' : 'Todas las categorías'}
+          <ChevronDown size={14} className={`transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {mobileMenuOpen && (
+          <>
+            <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-800 rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up">
+              <div className="sticky top-0 bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between">
+                <h3 className="text-white font-semibold">Categorías</h3>
+                <button onClick={() => setMobileMenuOpen(false)} className="text-gray-500 hover:text-white p-1">
+                  <ChevronDown size={20} />
+                </button>
+              </div>
+              <div className="p-4 space-y-1">
+                <button
+                  onClick={handleAllClick}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    !selected
+                      ? 'bg-gold-500/10 text-gold-400 border border-gold-500/20'
+                      : 'text-gray-400 hover:bg-gray-800'
+                  }`}
+                >
+                  <span className="text-lg">📦</span> Todos los productos
+                </button>
+                {topCategories.map(cat => {
+                  const hasChildren = cat.children && cat.children.length > 0;
+                  const isSelected = selected === cat.id;
+                  const isChildSelected = hasChildren && cat.children!.some(c => c.id === selected);
+
+                  return (
+                    <div key={cat.id}>
+                      <button
+                        onClick={() => handleMobileSelect(cat.id)}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                          isSelected || isChildSelected
+                            ? 'bg-gold-500/10 text-gold-400 border border-gold-500/20'
+                            : 'text-gray-400 hover:bg-gray-800'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">{categoryEmojis[cat.name.toLowerCase()] || categoryEmojis.default}</span>
+                          {cat.name}
+                        </div>
+                        {hasChildren && <ChevronDown size={14} className="text-gray-600" />}
+                      </button>
+                      {hasChildren && cat.children!.length > 0 && (
+                        <div className="ml-6 mt-1 space-y-1">
+                          {cat.children!.map(sub => (
+                            <button
+                              key={sub.id}
+                              onClick={() => handleMobileSelect(sub.id)}
+                              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs transition-all ${
+                                selected === sub.id
+                                  ? 'bg-gold-500/10 text-gold-400'
+                                  : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                              }`}
+                            >
+                              <span>{categoryEmojis[sub.name.toLowerCase()] || '📦'}</span>
+                              {sub.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -105,52 +105,49 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-white">Productos</h1>
           <p className="text-gray-400 text-sm">{products.length} en catálogo</p>
         </div>
-        <div className="relative">
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 gold-gradient text-gray-950 rounded-xl hover:opacity-90 transition-opacity text-sm font-semibold"
-          >
-            <Plus size={16} />
-            <span className="sm:hidden">Acciones</span>
-            <span className="hidden sm:inline">Agregar Producto</span>
-            <ChevronDown size={16} className={`sm:hidden transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
-          </button>
-          {menuOpen && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-              <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-xl shadow-xl z-20 overflow-hidden">
-                <Link
-                  to="/products/new"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-sm text-white hover:bg-gray-800 transition-colors"
-                >
-                  <Plus size={15} /> Agregar Producto
-                </Link>
-                <Link
-                  to="/categories"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
-                >
-                  <Tag size={15} /> Categorías
-                </Link>
-                <Link
-                  to="/promotions"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
-                >
-                  <Percent size={15} /> Promociones
-                </Link>
-                <Link
-                  to="/"
-                  target="_blank"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
-                >
-                  <Eye size={15} /> Ver Tienda
-                </Link>
-              </div>
-            </>
-          )}
+        <div className="flex flex-wrap gap-2">
+          <Link to="/products/new" className="hidden sm:inline-flex items-center gap-2 px-4 py-2 gold-gradient text-gray-950 rounded-xl hover:opacity-90 transition-opacity text-sm font-semibold">
+            <Plus size={16} /> Agregar Producto
+          </Link>
+          <Link to="/categories" className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-gray-800 border border-gray-700 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors text-sm">
+            <Tag size={16} /> Categorías
+          </Link>
+          <Link to="/promotions" className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-gray-800 border border-gray-700 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors text-sm">
+            <Percent size={16} /> Promociones
+          </Link>
+          <Link to="/" target="_blank" className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-gray-800 border border-gray-700 text-gray-300 rounded-xl hover:bg-gray-700 transition-colors text-sm">
+            <Eye size={16} /> Ver Tienda
+          </Link>
+
+          <div className="relative sm:hidden">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 gold-gradient text-gray-950 rounded-xl hover:opacity-90 transition-opacity text-sm font-semibold w-full"
+            >
+              <Plus size={16} />
+              Acciones
+              <ChevronDown size={16} className={`transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-xl shadow-xl z-20 overflow-hidden">
+                  <Link to="/products/new" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 text-sm text-white hover:bg-gray-800 transition-colors">
+                    <Plus size={15} /> Agregar Producto
+                  </Link>
+                  <Link to="/categories" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+                    <Tag size={15} /> Categorías
+                  </Link>
+                  <Link to="/promotions" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+                    <Percent size={15} /> Promociones
+                  </Link>
+                  <Link to="/" target="_blank" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
+                    <Eye size={15} /> Ver Tienda
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
