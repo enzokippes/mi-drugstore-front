@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { Plus, Edit2, Trash2, Package, Tag, Eye, ToggleLeft, ToggleRight, Percent, Star, ChevronDown, AlertTriangle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Package, Tag, Eye, Percent, Star, ChevronDown, AlertTriangle } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -49,17 +49,6 @@ export default function Dashboard() {
   }
 
   const [menuOpen, setMenuOpen] = useState(false);
-
-  async function handleToggleInventory() {
-    const newValue = !trackInventory;
-    setTrackInventory(newValue);
-    try {
-      await api.put('/settings', { key: 'trackInventory', value: String(newValue) });
-    } catch (error) {
-      console.error('Error updating setting:', error);
-      setTrackInventory(!newValue);
-    }
-  }
 
   async function handleToggleFeatured(id: string, current: boolean) {
     try {

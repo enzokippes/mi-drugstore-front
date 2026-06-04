@@ -17,7 +17,7 @@ export default function OrderManagement() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit] = useState(20);
   const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState('ALL');

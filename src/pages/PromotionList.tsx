@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { Plus, Edit2, Trash2, Percent, Edit, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, Percent } from 'lucide-react';
 
 interface Promotion {
   id: string;
