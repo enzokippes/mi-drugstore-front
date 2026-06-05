@@ -1,22 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, ShoppingBag, LayoutDashboard, ClipboardList, MapPin, Gift, BarChart3, Menu, X, ChevronRight } from 'lucide-react';
+import { LogOut, ShoppingBag, LayoutDashboard, ClipboardList, MapPin, Gift, BarChart3, Menu, X, ChevronRight, User } from 'lucide-react';
 
 interface NavItem {
   to: string;
   label: string;
-  icon: typeof BarChart3;
+  icon: string;
   adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { to: '/dashboard', label: 'Estadísticas', icon: BarChart3, adminOnly: true },
-  { to: '/products', label: 'Productos', icon: LayoutDashboard, adminOnly: true },
-  { to: '/orders', label: 'Pedidos', icon: ClipboardList, adminOnly: true },
-  { to: '/admin/delivery-zones', label: 'Zonas', icon: MapPin, adminOnly: true },
-  { to: '/admin/rewards', label: 'Recompensas', icon: Gift, adminOnly: true },
-  { to: '/my-orders', label: 'Mis Pedidos', icon: ShoppingBag },
+  { to: '/dashboard', label: 'Estadísticas', icon: 'bar_chart', adminOnly: true },
+  { to: '/products', label: 'Productos', icon: 'inventory_2', adminOnly: true },
+  { to: '/orders', label: 'Pedidos', icon: 'receipt_long', adminOnly: true },
+  { to: '/admin/delivery-zones', label: 'Zonas', icon: 'map', adminOnly: true },
+  { to: '/admin/rewards', label: 'Recompensas', icon: 'card_giftcard', adminOnly: true },
+  { to: '/my-orders', label: 'Mis Pedidos', icon: 'shopping_bag' },
 ];
 
 export default function AdminNav() {
@@ -48,59 +48,77 @@ export default function AdminNav() {
   const handleLogout = () => {
     logout();
     navigate('/');
+    setDrawerOpen(false);
   };
 
-  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
+  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   return (
     <>
-      <nav className="glass-dark border-b border-gold-500/10 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="glass-header sticky top-0 z-40 border-b border-outline-variant">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8">
           <div className="flex justify-between h-16">
+            {/* Logo */}
             <div className="flex items-center">
               <Link to="/" className="flex items-center text-white font-bold text-xl">
-                <img src="/logo.jpeg" alt="Barba Negra" className="h-8 w-8 mr-2 rounded-lg object-cover ring-1 ring-gold-400/30" />
-                <span className="hidden sm:inline">Barba Negra</span>
-                <span className="gold-text ml-1 text-sm hidden md:inline">Admin</span>
+                <span className="font-headline-lg text-headline-lg font-bold text-primary mr-2">Barba Negra</span>
+                <span className="text-on-surface-variant text-sm hidden md:inline">Admin</span>
               </Link>
             </div>
 
+            {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
               {isAuthenticated && isAdmin && navItems.filter(i => i.adminOnly).map(item => (
-                <NavLink key={item.to} item={item} currentPath={location.pathname} />
-              ))}
-              {isAuthenticated && navItems.filter(i => !i.adminOnly).map(item => (
-                <NavLink key={item.to} item={item} currentPath={location.pathname} />
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    isActive(item.to)
+                      ? 'bg-primary-container/20 text-primary border border-primary-container'
+                      : 'text-on-surface-variant hover:text-primary hover:bg-surface-container'
+                  }`}
+                >
+                  <span className="material-symbols-outlined mr-2" style={{ fontSize: '18px' }}>{item.icon}</span>
+                  {item.label}
+                </Link>
               ))}
             </div>
 
-            <div className="flex items-center gap-2 lg:gap-4">
+            {/* Right Side */}
+            <div className="flex items-center gap-4">
               {isAuthenticated ? (
                 <>
-                  <div className="hidden sm:flex items-center gap-2">
-                    <span className="text-gray-500 text-sm">{user?.name}</span>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center text-gray-500 hover:text-red-400 transition-colors text-sm p-2 rounded-lg hover:bg-gray-800"
-                    >
-                      <LogOut className="h-4 w-4 lg:mr-1" />
-                      <span className="hidden lg:inline">Salir</span>
-                    </button>
+                  {/* User Badge */}
+                  <div className="hidden sm:flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant">
+                    <User size={16} className="text-on-surface-variant" />
+                    <span className="text-on-surface text-sm font-medium">{user?.name?.split(' ')[0]}</span>
                   </div>
+
+                  {/* Mobile Menu Trigger */}
                   <button
                     id="drawer-trigger"
-                    onClick={toggleDrawer}
-                    className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                    onClick={() => setDrawerOpen(!drawerOpen)}
+                    className="lg:hidden p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors"
                     aria-label="Abrir menú"
                   >
-                    {drawerOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                    <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+                      {drawerOpen ? 'close' : 'menu'}
+                    </span>
                   </button>
 
+                  {/* Logout - Desktop */}
+                  <button
+                    onClick={handleLogout}
+                    className="hidden lg:flex items-center gap-1 px-3 py-2 text-on-surface-variant hover:text-error transition-colors text-sm rounded-lg hover:bg-surface-container"
+                  >
+                    <LogOut size={16} />
+                    <span>Salir</span>
+                  </button>
                 </>
               ) : (
                 <>
-                  <Link to="/login" className="text-gray-400 hover:text-gold-400 font-medium text-sm transition-colors">Ingresar</Link>
-                  <Link to="/register" className="gold-gradient text-gray-950 px-4 py-2 rounded-lg hover:opacity-90 font-semibold text-sm transition-colors">Registrarse</Link>
+                  <Link to="/login" className="text-on-surface-variant hover:text-primary font-medium text-sm transition-colors">Ingresar</Link>
+                  <Link to="/register" className="bg-primary-container text-on-primary px-4 py-2 rounded-lg hover:brightness-110 font-bold text-sm transition-all">Registrarse</Link>
                 </>
               )}
             </div>
@@ -108,48 +126,76 @@ export default function AdminNav() {
         </div>
       </nav>
 
+      {/* Mobile Drawer */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
           <div
             ref={drawerRef}
-            className="absolute left-0 top-0 h-full w-72 glass-dark border-r border-gold-500/10 transform transition-transform duration-300 ease-out"
+            className="absolute left-0 top-0 h-full w-72 bg-surface-container-low border-r border-outline-variant transform transition-transform duration-300 ease-out"
           >
-            <div className="p-5 border-b border-gold-500/10">
+            <div className="p-5 border-b border-outline-variant">
               <div className="flex items-center justify-between">
-                <Link to="/" className="flex items-center text-white font-bold text-lg" onClick={() => setDrawerOpen(false)}>
-                  <img src="/logo.jpeg" alt="Barba Negra" className="h-8 w-8 mr-2 rounded-lg object-cover ring-1 ring-gold-400/30" />
-                  Barba Negra
-                </Link>
+                <div className="flex items-center gap-2">
+                  <span className="font-headline-lg text-headline-lg font-bold text-primary">Barba Negra</span>
+                </div>
                 <button
                   onClick={() => setDrawerOpen(false)}
-                  className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                  className="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors"
                 >
-                  <X className="h-5 w-5" />
+                  <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
               {user && (
-                <p className="text-gray-500 text-sm mt-2">@{user.name}</p>
+                <p className="text-on-surface-variant text-sm mt-2">@{user.name}</p>
               )}
             </div>
 
             <nav className="p-4">
               <div className="space-y-1">
                 {isAuthenticated && isAdmin && navItems.filter(i => i.adminOnly).map(item => (
-                  <DrawerNavLink key={item.to} item={item} currentPath={location.pathname} onClick={() => setDrawerOpen(false)} />
+                  <button
+                    key={item.to}
+                    onClick={() => { navigate(item.to); setDrawerOpen(false); }}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                      isActive(item.to)
+                        ? 'bg-primary-container/20 text-primary border border-primary-container'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{item.icon}</span>
+                      {item.label}
+                    </div>
+                    {isActive(item.to) && <ChevronRight size={16} className="text-outline" />}
+                  </button>
                 ))}
                 {isAuthenticated && navItems.filter(i => !i.adminOnly).map(item => (
-                  <DrawerNavLink key={item.to} item={item} currentPath={location.pathname} onClick={() => setDrawerOpen(false)} />
+                  <button
+                    key={item.to}
+                    onClick={() => { navigate(item.to); setDrawerOpen(false); }}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                      isActive(item.to)
+                        ? 'bg-primary-container/20 text-primary border border-primary-container'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-surface-container'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{item.icon}</span>
+                      {item.label}
+                    </div>
+                    {isActive(item.to) && <ChevronRight size={16} className="text-outline" />}
+                  </button>
                 ))}
               </div>
             </nav>
 
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gold-500/10">
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-outline-variant">
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500/10 text-red-400 rounded-xl hover:bg-red-500/20 transition-colors font-medium"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-surface-container-high text-error rounded-xl hover:bg-error hover:text-on-error transition-colors font-medium"
               >
-                <LogOut className="h-5 w-5" />
+                <LogOut size={18} />
                 Cerrar sesión
               </button>
             </div>
@@ -157,43 +203,5 @@ export default function AdminNav() {
         </div>
       )}
     </>
-  );
-}
-
-function NavLink({ item, currentPath }: { item: NavItem; currentPath: string }) {
-  const isActive = currentPath === item.to || currentPath.startsWith(item.to + '/');
-  return (
-    <Link
-      to={item.to}
-      className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-        isActive
-          ? 'bg-gold-500/10 text-gold-400'
-          : 'text-gray-400 hover:text-white hover:bg-gray-800'
-      }`}
-    >
-      <item.icon className="h-4 w-4 mr-2" />
-      <span className="hidden xl:inline">{item.label}</span>
-    </Link>
-  );
-}
-
-function DrawerNavLink({ item, currentPath, onClick }: { item: NavItem; currentPath: string; onClick: () => void }) {
-  const isActive = currentPath === item.to || currentPath.startsWith(item.to + '/');
-  return (
-    <Link
-      to={item.to}
-      onClick={onClick}
-      className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-        isActive
-          ? 'bg-gold-500/10 text-gold-400 border border-gold-500/20'
-          : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <item.icon className="h-5 w-5" />
-        {item.label}
-      </div>
-      {isActive && <ChevronRight className="h-4 w-4" />}
-    </Link>
   );
 }

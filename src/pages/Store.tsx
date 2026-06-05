@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import StoreHeader from '../components/store/StoreHeader';
-import QuickSearch from '../components/store/QuickSearch';
 import CombosSection from '../components/store/CombosSection';
 import FeaturedSection from '../components/store/FeaturedSection';
 import CategoryTabs from '../components/store/CategoryTabs';
@@ -15,6 +14,8 @@ import PaymentMethods from '../components/store/PaymentMethods';
 import WhatsAppButton from '../components/store/WhatsAppButton';
 import CheckoutSheet from '../components/store/CheckoutSheet';
 import PromoBanner from '../components/store/PromoBanner';
+import Footer from '../components/store/Footer';
+import MobileBottomNav from '../components/store/MobileBottomNav';
 import type { Category, Product } from '../types';
 
 function generateTimeSlots(): string[] {
@@ -103,9 +104,9 @@ export default function Store() {
   ) {
     if (cart.length === 0) return;
     if (deliveryType === 'delivery') {
-      if (!address.trim()) { showToast('Ingresa tu direccion', 'error'); return; }
-      if (!phone.trim()) { showToast('Ingresa tu telefono', 'error'); return; }
-      if (!deliveryTime) { showToast('Selecciona un horario', 'error'); return; }
+      if (!address.trim()) { showToast('Ingresá tu dirección', 'error'); return; }
+      if (!phone.trim()) { showToast('Ingresá tu teléfono', 'error'); return; }
+      if (!deliveryTime) { showToast('Seleccioná un horario', 'error'); return; }
     }
 
     setLoading(true);
@@ -125,7 +126,7 @@ export default function Store() {
         deliveryTime: deliveryType === 'delivery' ? deliveryTime : undefined,
       });
 
-      showToast('Pedido realizado con exito', 'success');
+      showToast('Pedido realizado con éxito', 'success');
       clearCart();
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
@@ -152,109 +153,145 @@ export default function Store() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-background">
       <StoreHeader cartCount={cartCount} onCartClick={() => {
-        if (cartCount === 0) { showToast('Carrito vacio!', 'error'); return; }
+        if (cartCount === 0) { showToast('Carrito vacío!', 'error'); return; }
         setCartOpen(true);
       }} />
 
-      <main id="main-content">
-        <section className="bg-gradient-to-br from-gray-900 via-gray-900 to-gold-950/30 pt-4 pb-6 px-3 sm:px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex justify-center mb-2">
-              <img src="/logo.jpeg" alt="Barba Negra" className="w-14 h-14 sm:w-18 sm:h-18 rounded-xl object-cover shadow-lg ring-2 ring-gold-500/30" />
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-1">Barba Negra <span className="gold-text">Drugstore</span></h2>
-            <p className="text-gray-400 text-xs sm:text-base mb-3">Tu Drugstore, siempre cerca tuyo</p>
-            <div className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 glass rounded-full px-3 py-1.5 text-[10px] sm:text-xs text-gray-300">
-              <span>📌 H. Primo ESQ Balcarce</span>
-              <span className="text-gray-600">•</span>
-              <span>🕐 Lun a Sab 7:00 - 1:00</span>
-            </div>
-          </div>
-        </section>
-
-        <div className="sticky top-[56px] z-40 bg-gray-950/90 backdrop-blur pt-3 pb-1.5">
-          <QuickSearch
-            products={products.map(p => ({ id: p.id, name: p.name, price: p.price }))}
-            onSelect={(productId) => {
-              setSelectedCategory(null);
-              setSearchQuery(products.find(p => p.id === productId)?.name || '');
-            }}
-            onSearch={handleSearch}
-          />
-        </div>
-
+      <main id="main-content" className="pt-20 pb-20 md:pb-12">
+        {/* Promo Banner - Hero Section */}
         <PromoBanner />
 
+        {/* Featured Products */}
         <FeaturedSection
           products={featuredProducts}
           onAdd={handleAddToCart}
           trackInventory={trackInventory}
         />
 
+        {/* Combos Section */}
         <CombosSection
           products={products}
           onAdd={handleAddToCart}
           trackInventory={trackInventory}
         />
 
+        {/* Category Tabs with Search */}
         <CategoryTabs
           categories={categories}
           selected={selectedCategory}
           onSelect={setSelectedCategory}
+          onSearch={handleSearch}
+          searchQuery={searchQuery}
         />
 
+        {/* Product Grid */}
         {initialLoading ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-2.5 px-2 sm:px-3">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden animate-pulse">
-                <div className="aspect-[4/3] bg-gray-800" />
-                <div className="p-2 space-y-1.5">
-                  <div className="h-3 bg-gray-800 rounded w-3/4" />
-                  <div className="h-2.5 bg-gray-800 rounded w-1/2" />
-                  <div className="flex justify-between items-center pt-1">
-                    <div className="h-4 bg-gray-800 rounded w-14" />
-                    <div className="h-6 bg-gray-800 rounded-lg w-14" />
+          <div className="max-w-container-max mx-auto px-4 lg:px-margin-desktop">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden animate-pulse">
+                  <div className="aspect-square bg-surface-container" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 bg-surface-container rounded w-3/4" />
+                    <div className="h-5 bg-surface-container rounded w-1/2" />
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         ) : (
-          <ProductGrid
-            products={filteredProducts}
-            onAdd={handleAddToCart}
-            trackInventory={trackInventory}
-          />
+          <div className="max-w-container-max mx-auto px-4 lg:px-margin-desktop">
+            <ProductGrid
+              products={filteredProducts}
+              onAdd={handleAddToCart}
+              trackInventory={trackInventory}
+            />
+          </div>
         )}
 
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4">
-          <div className="glass rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🏪</span>
+        {/* Delivery CTA */}
+        <div className="max-w-container-max mx-auto px-4 lg:px-margin-desktop py-6">
+          <div className="bg-surface-container rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-outline-variant">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary">local_shipping</span>
+              </div>
               <div>
-                <p className="text-white font-medium text-sm">Envio a domicilio?</p>
-                <p className="text-gray-500 text-xs">Selecciona retiro o delivery en el carrito</p>
+                <p className="text-on-surface font-medium font-title-md">Envío a domicilio</p>
+                <p className="text-on-surface-variant text-sm">Delivery 24/7 en toda la ciudad</p>
               </div>
             </div>
             <button
               onClick={() => {
                 if (!isAuthenticated) { navigate('/login'); return; }
-                if (cartCount === 0) { showToast('Carrito vacio!', 'error'); return; }
+                if (cartCount === 0) { showToast('Carrito vacío!', 'error'); return; }
                 setCartOpen(true);
               }}
-              className="flex items-center gap-1.5 px-4 py-2 gold-gradient text-gray-950 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
+              className="bg-primary-container text-on-primary font-bold px-6 py-3 rounded-lg hover:brightness-110 transition-all"
             >
-              {isAuthenticated ? 'Ir al carrito' : 'Ingresa para pedir'}
+              {isAuthenticated ? 'Ir al carrito' : 'Ingresá para pedir'}
             </button>
           </div>
         </div>
 
-        <LocationMap />
+        {/* Map Section */}
+        <div className="max-w-container-max mx-auto px-4 lg:px-margin-desktop">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+            <div className="lg:col-span-2 rounded-2xl overflow-hidden h-80 border border-outline-variant relative">
+              <iframe
+                src={`https://maps.google.com/maps?q=-31.385226592108864,-58.02879512303576&z=18&ie=UTF8&iwloc=&output=embed`}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Barba Negra Drugstore - Ubicación"
+                className="grayscale brightness-50"
+              />
+              <div className="absolute bottom-4 left-4 bg-surface-container/90 backdrop-blur-md p-4 rounded-xl border border-outline-variant">
+                <h3 className="font-title-md text-title-md text-on-surface">Visitá nuestro local</h3>
+                <p className="text-on-surface-variant text-sm">H. Primo ESQ Balcarce, Concordia</p>
+                <p className="text-primary-container text-xs mt-1">Abierto 24/7 • Delivery disponible</p>
+              </div>
+            </div>
+            <div className="bg-surface-container-high rounded-2xl p-8 border border-outline-variant flex flex-col justify-center space-y-4">
+              <h3 className="font-headline-lg text-headline-lg">24/7 Drugstore</h3>
+              <p className="text-on-surface-variant">Tu drugstore de confianza las 24 horas. Productos de calidad para el estilo de vida moderno.</p>
+              <div className="space-y-2 text-sm text-on-surface-variant">
+                <p className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">location_on</span>
+                  H. Primo ESQ Balcarce
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">phone</span>
+                  +54 9 345 4322631
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">schedule</span>
+                  Abierto las 24 horas
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Methods */}
         <PaymentMethods />
+
+        {/* Footer */}
+        <Footer />
       </main>
 
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav onCartClick={() => {
+        if (cartCount === 0) { showToast('Carrito vacío!', 'error'); return; }
+        setCartOpen(true);
+      }} />
+
+      {/* Checkout Sheet */}
       {cartOpen && (
         <CheckoutSheet
           cart={cart}
@@ -273,17 +310,11 @@ export default function Store() {
         />
       )}
 
+      {/* WhatsApp Button */}
       <WhatsAppButton
         cartItems={cart}
         cartCount={cartCount}
       />
-
-      <footer className="border-t border-gray-800/50 py-6 px-3 sm:px-4 mt-8">
-        <div className="max-w-7xl mx-auto text-center text-gray-600 text-xs">
-          <p className="mb-1">Barba Negra Drugstore &copy; {new Date().getFullYear()}</p>
-          <p>Humberto Primo ESQ Balcarce, Concordia, Entre Rios</p>
-        </div>
-      </footer>
     </div>
   );
 }
