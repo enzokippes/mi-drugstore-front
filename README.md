@@ -1,144 +1,237 @@
 # Barba Negra Drugstore — Frontend
 
-Aplicacion web de una farmacia/drugstore online con catalogo de productos, carrito de compras, checkout con MercadoPago, panel de administracion y gestion de pedidos.
+A React web application for an online pharmacy/drugstore featuring a product catalog, shopping cart, MercadoPago checkout, admin panel, order management, and a loyalty points system with a mobile-first responsive design.
 
 ## Tech Stack
 
-| Tecnologia | Proposito |
-|------------|-----------|
-| React 19 + TypeScript 6 | UI y tipado estatico |
-| Vite 8 | Build tool y dev server |
-| Tailwind CSS 4 | Estilos utility-first |
-| React Router 7 | Routing del lado del cliente |
-| Axios | Cliente HTTP con interceptores |
-| Lucide React | Iconos |
-| Context API | Estado global (Auth + Cart + Toast) |
+| Technology | Purpose |
+|------------|---------|
+| React 19 | UI library |
+| TypeScript 6 | Static typing |
+| Vite 8 | Build tool and dev server |
+| Tailwind CSS 4 | Utility-first styles |
+| React Router 7 | Client-side routing |
+| Axios | HTTP client with interceptors |
+| Lucide React | Icon library |
+| Context API | Global state (Auth + Cart + Toast) |
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 src/
 ├── context/
-│   ├── AuthContext.tsx      # Autenticacion y sesion de usuario
-│   └── CartContext.tsx      # Carrito de compras global
+│   ├── AuthContext.tsx      # User authentication and session
+│   └── CartContext.tsx      # Global shopping cart
 ├── components/
-│   ├── Layout.tsx           # Layout admin (Navbar + contenido)
-│   ├── Navbar.tsx           # Barra de navegacion
-│   ├── Toast.tsx            # Sistema de notificaciones toast
+│   ├── AdminNav.tsx         # Admin navigation with hamburger menu
+│   ├── Layout.tsx           # Admin layout wrapper
+│   ├── Navbar.tsx           # Legacy navbar (replaced by StoreHeader)
+│   ├── Toast.tsx            # Toast notification system
 │   └── store/
-│       ├── StoreHeader.tsx  # Header de la tienda
-│       ├── QuickSearch.tsx  # Buscador con autocomplete
-│       ├── CategoryTabs.tsx # Filtro por categorias
-│       ├── ProductGrid.tsx  # Grilla de productos
-│       ├── ProductCard.tsx  # Tarjeta de producto individual
-│       ├── ProductSkeleton.tsx # Skeleton de carga
-│       ├── CombosSection.tsx # Seccion de combos
-│       ├── PromoBanner.tsx  # Banner rotativo de promos
-│       ├── CheckoutSheet.tsx # Bottom-sheet de carrito y checkout
-│       ├── LocationMap.tsx  # Mapa de ubicacion
-│       ├── PaymentMethods.tsx # Metodos de pago
-│       └── WhatsAppButton.tsx # Boton de WhatsApp
+│       ├── CategoryTabs.tsx  # Category filter with mobile bottom sheet
+│       ├── CheckoutSheet.tsx # Cart and checkout bottom sheet
+│       ├── CombosSection.tsx # Combo products section
+│       ├── FeaturedSection.tsx # Featured products section
+│       ├── LocationMap.tsx   # Store location map
+│       ├── PaymentMethods.tsx # Payment info display
+│       ├── ProductCard.tsx   # Individual product card
+│       ├── ProductGrid.tsx   # Product grid layout
+│       ├── ProductSkeleton.tsx # Loading skeleton
+│       ├── PromoBanner.tsx   # Rotating promotion banner
+│       ├── QuickSearch.tsx   # Search with autocomplete
+│       ├── StoreHeader.tsx   # Store header with mobile hamburger menu
+│       └── WhatsAppButton.tsx # WhatsApp contact button
 ├── pages/
-│   ├── Store.tsx            # Tienda principal (publica)
-│   ├── Login.tsx            # Inicio de sesion
-│   ├── Register.tsx         # Registro de usuario
-│   ├── Dashboard.tsx        # Panel admin de productos
-│   ├── ProductForm.tsx      # Crear/editar producto
-│   ├── CategoryList.tsx     # Lista de categorias (admin)
-│   ├── CategoryForm.tsx     # Crear/editar categoria
-│   ├── Promotions.tsx       # Pagina de promos (publica)
-│   ├── PromotionList.tsx    # Lista de promos (admin)
-│   ├── PromotionForm.tsx    # Crear/editar promo
-│   ├── MyOrders.tsx         # Historial de pedidos del usuario
-│   ├── OrderManagement.tsx  # Gestion de pedidos (admin)
-│   ├── PaymentSuccess.tsx   # Pago exitoso
-│   └── PaymentFailure.tsx   # Pago rechazado
+│   ├── Store.tsx            # Main store (public)
+│   ├── Login.tsx            # User login
+│   ├── Register.tsx          # User registration
+│   ├── ForgotPassword.tsx    # Password reset request
+│   ├── ResetPassword.tsx     # Password reset with token
+│   ├── ProductDetail.tsx     # Product detail page
+│   ├── Promotions.tsx        # Promotions page (public)
+│   ├── MyOrders.tsx         # User order history
+│   ├── Points.tsx            # Loyalty points and rewards
+│   ├── Profile.tsx           # User profile with addresses
+│   ├── Dashboard.tsx         # Admin product management
+│   ├── ProductForm.tsx       # Create/edit product
+│   ├── CategoryList.tsx      # Admin category list
+│   ├── CategoryForm.tsx     # Create/edit category
+│   ├── PromotionList.tsx    # Admin promotions list
+│   ├── PromotionForm.tsx    # Create/edit promotion
+│   ├── OrderManagement.tsx   # Admin order management
+│   ├── AdminDashboard.tsx    # Admin dashboard with stats
+│   ├── DeliveryZonesAdmin.tsx # Admin delivery zones
+│   └── RewardsAdmin.tsx      # Admin points rewards
 ├── hooks/
-│   └── useDebounce.ts       # Hook de debounce
+│   └── useDebounce.ts       # Debounce hook
 ├── services/
-│   └── api.ts               # Instancia Axios con interceptores
+│   └── api.ts               # Axios instance with interceptors
 ├── types/
-│   └── index.ts             # Interfaces compartidas
+│   └── index.ts             # Shared TypeScript interfaces
 ├── utils/
-│   ├── categoryEmojis.ts    # Emojis por categoria
-│   └── imageUrl.ts          # Helper de URLs de imagenes
-├── App.tsx                  # Rutas y providers
+│   ├── categoryEmojis.ts    # Category emoji mapping
+│   └── imageUrl.ts          # Image URL helper
+├── App.tsx                  # Routes and providers
 ├── main.tsx                 # Entry point
-└── index.css                # Estilos globales y animaciones
+└── index.css                # Global styles and animations
+screenshots/                  # Application screenshots (replace with actual)
+    ├── store.png             # Main store view
+    ├── admin-dashboard.png   # Admin dashboard with statistics
+    ├── mobile-store.png     # Mobile view with hamburger menu
+    ├── points.png           # Points page with rewards
+    └── profile.png           # Profile with saved addresses
 ```
 
-## Variables de Entorno
+## Environment Variables
 
-Crear un archivo `.env` en la raiz del proyecto:
+Create a `.env` file in the project root:
 
 ```env
 VITE_API_URL="http://localhost:3000"
 ```
 
-En produccion, reemplazar con la URL del backend deployado.
+In production, replace with your deployed backend URL.
 
-## Instalacion
+## Installation
 
 ```bash
-# 1. Instalar dependencias
+# 1. Install dependencies
 npm install
 
-# 2. Iniciar en modo desarrollo
+# 2. Start development server
 npm run dev
 ```
 
-La app corre en `http://localhost:5173`.
+The app runs at `http://localhost:5173`.
 
-## Funcionalidades
+## Features
 
-### Tienda (Publica)
-- Catalogo de productos con busqueda y filtro por categoria
-- Seccion de combos y banner de promociones
-- Carrito de compras persistente (localStorage)
-- Checkout con retiro en local o envio a domicilio
-- Pago con MercadoPago
-- Consulta por WhatsApp con mensaje pre-armado
-- Mapa de ubicacion y metodos de pago
+### Public Store
 
-### Autenticacion
-- Registro con validacion de contraseña (8+ chars, mayuscula, numero)
-- Login con JWT
-- Rutas protegidas y rutas de admin
-- Manejo automatico de sesion expirada (401)
+- **Product Catalog** with search and category filtering
+- **Featured Products** section on homepage
+- **Combos Section** for bundled products
+- **Promotions Page** (`/promociones`) with active deals
+- **Product Detail Page** with full information
+- **Persistent Shopping Cart** (localStorage)
+- **Checkout** with pickup or delivery options
+- **Delivery Zones** with pricing based on location
+- **MercadoPago Payment Integration**
+- **WhatsApp Contact** with pre-filled messages
+- **Location Map** and payment methods display
 
-### Panel de Administracion
-- CRUD completo de productos (con upload de imagenes)
-- CRUD completo de categorias
-- CRUD completo de promociones
-- Gestion de pedidos (confirmar, entregar, cancelar)
-- Toggle de seguimiento de inventario
+### Authentication
 
-### Pedidos
-- Creacion de pedidos con tipo de entrega (retiro/delivery)
-- Historial de pedidos con estado y estado de pago
-- Descuento automatico de stock al crear pedido
-- Notificacion por email al cliente y al admin
+- **Registration** with password validation (8+ chars, uppercase, number)
+- **Login** with JWT authentication
+- **Forgot Password** flow with email reset link
+- **Reset Password** with token validation
+- **Protected Routes** and admin route guards
+- **Automatic 401 Handling** for expired sessions
 
-## Accesibilidad
+### User Features
 
-- `lang="es"` en HTML
+- **Points System** (`/points`)
+  - View current points balance
+  - Browse available rewards
+  - Redeem points for rewards
+  - Points history with transactions
+- **Profile Management** (`/profile`)
+  - View user information
+  - Manage saved addresses
+  - Add/edit/delete addresses
+  - Set default address
+- **Order History** (`/my-orders`)
+  - View past orders
+  - Track order status
+  - View order details
+
+### Admin Panel
+
+- **Dashboard** (`/dashboard`) - Product management with CRUD operations
+- **Category Management** (`/categories`) - Full category CRUD
+- **Promotion Management** (`/promotions`) - Full promotion CRUD
+- **Order Management** (`/orders`) - View all orders, update status, track delivery
+- **Admin Dashboard** (`/admin/dashboard`) - Statistics and overview
+- **Delivery Zones** (`/admin/delivery-zones`) - Manage delivery areas and pricing
+- **Rewards Management** (`/admin/rewards`) - Manage point rewards
+- **Image Upload** via Cloudinary
+
+### Responsive Design
+
+Mobile-first approach with adaptive layouts:
+
+| Feature | Desktop | Mobile |
+|---------|---------|--------|
+| **Navigation** | Full navbar with all links | Hamburger menu with drawer |
+| **Categories** | Horizontal tabs | Bottom sheet with swipe |
+| **Cart/Checkout** | Page view | Bottom sheet overlay |
+| **Product Grid** | 4 columns | 2 columns |
+| **Admin Menu** | Sidebar + top bar | Collapsible drawer |
+
+#### Mobile-Specific Components
+
+- **StoreHeader** (`src/components/store/StoreHeader.tsx`)
+  - Hamburger menu for mobile navigation
+  - Collapsible drawer with all store links
+  - Touch-friendly cart button
+
+- **CategoryTabs** (`src/components/store/CategoryTabs.tsx`)
+  - Bottom sheet on mobile for category selection
+  - Horizontal scrollable tabs on desktop
+
+- **CheckoutSheet** (`src/components/store/CheckoutSheet.tsx`)
+  - Bottom sheet on mobile for cart and checkout
+  - Full page on desktop
+
+- **AdminNav** (`src/components/AdminNav.tsx`)
+  - Hamburger menu for mobile admin navigation
+  - Side drawer with admin links
+
+## Accessibility
+
+- `lang="es"` on HTML element
 - Skip navigation link
-- `aria-live` en notificaciones toast
-- `aria-label` en botones interactivos
-- Respeto a `prefers-reduced-motion`
-- HTML semantico (`nav`, `main`, `section`, `footer`)
-- Labels asociados a todos los inputs de formulario
-- `loading="lazy"` en imagenes
+- `aria-live` on toast notifications
+- `aria-label` on interactive buttons
+- `prefers-reduced-motion` respected
+- Semantic HTML (`nav`, `main`, `section`, `footer`)
+- Form inputs with associated labels
+- `loading="lazy"` on images
+
+## Screenshots
+
+Replace these placeholder images with actual screenshots:
+
+| File | Description |
+|------|-------------|
+| `screenshots/store.png` | Main store with product grid |
+| `screenshots/admin-dashboard.png` | Admin dashboard with statistics |
+| `screenshots/mobile-store.png` | Mobile view showing hamburger menu |
+| `screenshots/points.png` | Points page with rewards list |
+| `screenshots/profile.png` | User profile with saved addresses |
+
+To capture screenshots:
+1. Open the application in your browser
+2. Take a screenshot of the relevant view
+3. Save as PNG to the `screenshots/` folder
+4. Replace the placeholder files
 
 ## Scripts
 
-| Comando | Descripcion |
+| Command | Description |
 |---------|-------------|
-| `npm run dev` | Desarrollo con hot reload |
-| `npm run build` | Build de produccion |
-| `npm run preview` | Preview del build |
-| `npm run lint` | Linting con ESLint |
+| `npm run dev` | Development with hot reload |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | ESLint linting |
 
 ## Backend
 
-Esta aplicacion consume la API de [mi-drugstore-back](https://github.com/enzokippes/mi-drugstore-back).
+This application consumes the API of [mi-drugstore-back](https://github.com/enzokippes/mi-drugstore-back).
+
+Make sure the backend is running and the `VITE_API_URL` environment variable is set correctly.
+
+## License
+
+MIT
