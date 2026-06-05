@@ -1,6 +1,6 @@
 # Barba Negra Drugstore — Frontend
 
-A React web application for an online pharmacy/drugstore featuring a product catalog, shopping cart, MercadoPago checkout, admin panel, order management, and a loyalty points system with a mobile-first responsive design.
+A React web application for an online pharmacy/drugstore featuring a product catalog, shopping cart, admin panel, order management, and a loyalty points system with a mobile-first responsive design.
 
 ## Tech Stack
 
@@ -25,7 +25,7 @@ src/
 ├── components/
 │   ├── AdminNav.tsx         # Admin navigation with hamburger menu
 │   ├── Layout.tsx           # Admin layout wrapper
-│   ├── Navbar.tsx           # Legacy navbar (replaced by StoreHeader)
+│   ├── Navbar.tsx           # Navbar component (currently unused)
 │   ├── Toast.tsx            # Toast notification system
 │   └── store/
 │       ├── CategoryTabs.tsx  # Category filter with mobile bottom sheet
@@ -33,7 +33,7 @@ src/
 │       ├── CombosSection.tsx # Combo products section
 │       ├── FeaturedSection.tsx # Featured products section
 │       ├── LocationMap.tsx   # Store location map
-│       ├── PaymentMethods.tsx # Payment info display
+│       ├── PaymentMethods.tsx # Payment methods display
 │       ├── ProductCard.tsx   # Individual product card
 │       ├── ProductGrid.tsx   # Product grid layout
 │       ├── ProductSkeleton.tsx # Loading skeleton
@@ -116,7 +116,6 @@ The app runs at `http://localhost:5173`.
 - **Persistent Shopping Cart** (localStorage)
 - **Checkout** with pickup or delivery options
 - **Delivery Zones** with pricing based on location
-- **MercadoPago Payment Integration**
 - **WhatsApp Contact** with pre-filled messages
 - **Location Map** and payment methods display
 
