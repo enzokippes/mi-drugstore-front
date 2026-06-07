@@ -32,7 +32,9 @@ src/
 │       ├── CheckoutSheet.tsx # Cart and checkout bottom sheet
 │       ├── CombosSection.tsx # Combo products section
 │       ├── FeaturedSection.tsx # Featured products section
+│       ├── Footer.tsx         # Store footer with info columns
 │       ├── LocationMap.tsx   # Store location map
+│       ├── MobileBottomNav.tsx # Fixed bottom nav for mobile
 │       ├── PaymentMethods.tsx # Payment methods display
 │       ├── ProductCard.tsx   # Individual product card
 │       ├── ProductGrid.tsx   # Product grid layout
@@ -166,6 +168,7 @@ Mobile-first approach with adaptive layouts:
 | **Categories** | Horizontal tabs | Bottom sheet with swipe |
 | **Cart/Checkout** | Page view | Bottom sheet overlay |
 | **Product Grid** | 4 columns | 2 columns |
+| **Bottom Nav** | Hidden | Fixed bar with cart + links |
 | **Admin Menu** | Sidebar + top bar | Collapsible drawer |
 
 #### Mobile-Specific Components
@@ -182,6 +185,14 @@ Mobile-first approach with adaptive layouts:
 - **CheckoutSheet** (`src/components/store/CheckoutSheet.tsx`)
   - Bottom sheet on mobile for cart and checkout
   - Full page on desktop
+
+- **Footer** (`src/components/store/Footer.tsx`)
+  - 4 columns: about, links, contact, payment methods
+  - Responsive grid layout
+
+- **MobileBottomNav** (`src/components/store/MobileBottomNav.tsx`)
+  - Fixed bottom navigation bar on mobile
+  - Quick access to home, categories, cart
 
 - **AdminNav** (`src/components/AdminNav.tsx`)
   - Hamburger menu for mobile admin navigation

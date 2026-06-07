@@ -89,7 +89,7 @@ export default function StoreHeader({ cartCount, onCartClick, onCategoryClick }:
                 className="hidden md:flex items-center gap-1.5 text-xs text-surface-muted hover:text-gold-400 transition-colors px-3 py-1.5 rounded-full bg-surface-light border border-surface-border"
               >
                 <Phone size={12} />
-                <span className="whitespace-nowrap">3454 32-2631</span>
+                <span className="whitespace-nowrap">345 432-2631</span>
               </a>
 
               <div className="hidden lg:flex items-center gap-2">
