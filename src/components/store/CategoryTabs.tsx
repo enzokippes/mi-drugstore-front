@@ -46,17 +46,17 @@ export default function CategoryTabs({ categories, selected, onSelect }: Categor
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3">
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory hidden md:flex">
+    <div className="max-w-7xl mx-auto px-4">
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
         <button
           onClick={handleAllClick}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap snap-start transition-all shrink-0 ${
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap snap-start transition-all shrink-0 ${
             !selected
-              ? 'gold-gradient text-gray-950 shadow-lg shadow-gold-500/20'
-              : 'bg-gray-800/80 text-gray-400 hover:bg-gray-700 border border-gray-700/50'
+              ? 'bg-gold-400 text-surface-dark font-semibold'
+              : 'bg-surface-light text-on-surface-variant hover:bg-surface-variant border border-surface-border'
           }`}
         >
-          <span>📦</span> Todos
+          Todos
         </button>
         {topCategories.map(cat => {
           const hasChildren = cat.children && cat.children.length > 0;
@@ -68,24 +68,24 @@ export default function CategoryTabs({ categories, selected, onSelect }: Categor
             <div key={cat.id} className="relative shrink-0 snap-start">
               <button
                 onClick={() => handleCategoryClick(cat)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
                   isSelected || isChildSelected
-                    ? 'gold-gradient text-gray-950 shadow-lg shadow-gold-500/20'
-                    : 'bg-gray-800/80 text-gray-400 hover:bg-gray-700 border border-gray-700/50'
+                    ? 'bg-gold-400 text-surface-dark font-semibold'
+                    : 'bg-surface-light text-on-surface-variant hover:bg-surface-variant border border-surface-border'
                 }`}
               >
-                <span>{categoryEmojis[cat.name.toLowerCase()] || categoryEmojis.default}</span> {cat.name}
+                <span>{categoryEmojis[cat.name.toLowerCase()] || '📦'}</span> {cat.name}
                 {hasChildren && (
                   <ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                 )}
               </button>
 
               {isExpanded && hasChildren && (
-                <div className="absolute top-full mt-1 left-0 z-50 bg-gray-800 border border-gray-700 rounded-xl shadow-xl shadow-black/40 overflow-hidden min-w-[140px]">
+                <div className="absolute top-full mt-1 left-0 z-50 bg-surface-light border border-surface-border rounded-xl shadow-xl shadow-black/30 overflow-hidden min-w-[140px]">
                   <button
                     onClick={() => { onSelect(cat.id); setExpandedId(null); }}
-                    className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-700/80 transition-colors ${
-                      selected === cat.id ? 'text-gold-400 font-medium' : 'text-gray-300'
+                    className={`w-full text-left px-4 py-2.5 text-xs hover:bg-surface-variant transition-colors ${
+                      selected === cat.id ? 'text-gold-400 font-medium' : 'text-on-surface'
                     }`}
                   >
                     Todo en {cat.name}
@@ -94,8 +94,8 @@ export default function CategoryTabs({ categories, selected, onSelect }: Categor
                     <button
                       key={sub.id}
                       onClick={() => { handleSubClick(sub.id); setExpandedId(null); }}
-                      className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-700/80 transition-colors ${
-                        selected === sub.id ? 'text-gold-400 font-medium' : 'text-gray-300'
+                      className={`w-full text-left px-4 py-2.5 text-xs hover:bg-surface-variant transition-colors ${
+                        selected === sub.id ? 'text-gold-400 font-medium' : 'text-on-surface'
                       }`}
                     >
                       {categoryEmojis[sub.name.toLowerCase()] || '📦'} {sub.name}
@@ -108,13 +108,13 @@ export default function CategoryTabs({ categories, selected, onSelect }: Categor
         })}
       </div>
 
-      <div className="flex md:hidden">
+      <div className="flex md:hidden mt-3">
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all shrink-0 ${
             mobileMenuOpen
-              ? 'gold-gradient text-gray-950'
-              : 'bg-gray-800/80 text-gray-400 hover:bg-gray-700 border border-gray-700/50'
+              ? 'bg-gold-400 text-surface-dark'
+              : 'bg-surface-light text-on-surface-variant border border-surface-border'
           }`}
         >
           <LayoutGrid size={16} />
@@ -125,10 +125,10 @@ export default function CategoryTabs({ categories, selected, onSelect }: Categor
         {mobileMenuOpen && (
           <>
             <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-            <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-800 rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up">
-              <div className="sticky top-0 bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between">
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-surface-light border-t border-surface-border rounded-t-2xl max-h-[70vh] overflow-y-auto animate-slide-up">
+              <div className="sticky top-0 bg-surface-light border-b border-surface-border px-4 py-3 flex items-center justify-between">
                 <h3 className="text-white font-semibold">Categorías</h3>
-                <button onClick={() => setMobileMenuOpen(false)} className="text-gray-500 hover:text-white p-1">
+                <button onClick={() => setMobileMenuOpen(false)} className="text-on-surface-variant hover:text-white p-1">
                   <ChevronDown size={20} />
                 </button>
               </div>
@@ -137,8 +137,8 @@ export default function CategoryTabs({ categories, selected, onSelect }: Categor
                   onClick={handleAllClick}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     !selected
-                      ? 'bg-gold-500/10 text-gold-400 border border-gold-500/20'
-                      : 'text-gray-400 hover:bg-gray-800'
+                      ? 'bg-gold-400/10 text-gold-400 border border-gold-400/20'
+                      : 'text-on-surface-variant hover:bg-surface-variant'
                   }`}
                 >
                   <span className="text-lg">📦</span> Todos los productos
@@ -154,15 +154,15 @@ export default function CategoryTabs({ categories, selected, onSelect }: Categor
                         onClick={() => handleMobileSelect(cat.id)}
                         className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                           isSelected || isChildSelected
-                            ? 'bg-gold-500/10 text-gold-400 border border-gold-500/20'
-                            : 'text-gray-400 hover:bg-gray-800'
+                            ? 'bg-gold-400/10 text-gold-400 border border-gold-400/20'
+                            : 'text-on-surface-variant hover:bg-surface-variant'
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-lg">{categoryEmojis[cat.name.toLowerCase()] || categoryEmojis.default}</span>
+                          <span className="text-lg">{categoryEmojis[cat.name.toLowerCase()] || '📦'}</span>
                           {cat.name}
                         </div>
-                        {hasChildren && <ChevronDown size={14} className="text-gray-600" />}
+                        {hasChildren && <ChevronDown size={14} className="text-surface-muted" />}
                       </button>
                       {hasChildren && cat.children!.length > 0 && (
                         <div className="ml-6 mt-1 space-y-1">
@@ -172,8 +172,8 @@ export default function CategoryTabs({ categories, selected, onSelect }: Categor
                               onClick={() => handleMobileSelect(sub.id)}
                               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs transition-all ${
                                 selected === sub.id
-                                  ? 'bg-gold-500/10 text-gold-400'
-                                  : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+                                  ? 'bg-gold-400/10 text-gold-400'
+                                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50'
                               }`}
                             >
                               <span>{categoryEmojis[sub.name.toLowerCase()] || '📦'}</span>
