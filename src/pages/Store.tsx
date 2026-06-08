@@ -275,7 +275,7 @@ export default function Store() {
         <Footer />
       </main>
 
-      <MobileBottomNav cartCount={cartCount} />
+      <MobileBottomNav cartCount={cartCount} onCartClick={() => setCartOpen(true)} />
 
       {cartOpen && (
         <CheckoutSheet
@@ -290,7 +290,6 @@ export default function Store() {
           loading={loading}
           timeSlots={timeSlots}
           isOpen={cartOpen}
-          onOpen={() => setCartOpen(true)}
           onClose={() => setCartOpen(false)}
         />
       )}

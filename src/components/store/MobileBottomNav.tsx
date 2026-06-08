@@ -3,9 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 interface MobileBottomNavProps {
   cartCount?: number;
+  onCartClick?: () => void;
 }
 
-export default function MobileBottomNav({ cartCount = 0 }: MobileBottomNavProps) {
+export default function MobileBottomNav({ cartCount = 0, onCartClick }: MobileBottomNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,7 +30,7 @@ export default function MobileBottomNav({ cartCount = 0 }: MobileBottomNavProps)
             return (
               <button
                 key={index}
-                onClick={() => navigate(item.path)}
+                onClick={() => onCartClick ? onCartClick() : navigate(item.path)}
                 className="relative flex flex-col items-center justify-center gap-0.5 w-16 h-full"
               >
                 <div className="relative">
