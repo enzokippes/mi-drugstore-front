@@ -53,7 +53,7 @@ export default function ProductCard({ product, onAdd, trackInventory }: ProductC
           <button
             onClick={(e) => { e.preventDefault(); onAdd(product); }}
             disabled={!available}
-            className="absolute bottom-3 right-3 gold-gradient text-surface-dark w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute bottom-3 right-3 gold-gradient text-surface-dark w-7 h-7 rounded-full flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all translate-y-1 md:group-hover:translate-y-0 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label={`Agregar ${product.name}`}
           >
             <Plus size={14} strokeWidth={2.5} />
