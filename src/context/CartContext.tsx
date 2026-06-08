@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Product, CartItem } from '../types';
 
@@ -14,9 +14,14 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-function loadCart(): CartItem[] {
+function getCartKey(userId?: string): string {
+  return userId ? `barbanegra_cart_${userId}` : 'barbanegra_cart';
+}
+
+function loadCart(userId?: string): CartItem[] {
   try {
-    const stored = localStorage.getItem('barbanegra_cart');
+    const key = getCartKey(userId);
+    const stored = localStorage.getItem(key);
     if (!stored) return [];
     const parsed = JSON.parse(stored);
     if (!Array.isArray(parsed)) return [];
@@ -26,20 +31,76 @@ function loadCart(): CartItem[] {
   }
 }
 
-function saveCart(cart: CartItem[]) {
+function saveCart(cart: CartItem[], userId?: string) {
   try {
-    localStorage.setItem('barbanegra_cart', JSON.stringify(cart));
+    const key = getCartKey(userId);
+    localStorage.setItem(key, JSON.stringify(cart));
   } catch {
     // storage full
   }
 }
 
-export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<CartItem[]>(loadCart);
+function clearCartKey(userId?: string) {
+  try {
+    const key = getCartKey(userId);
+    localStorage.removeItem(key);
+  } catch {
+    // ignore
+  }
+}
+
+function mergeCarts(guestCart: CartItem[], userCart: CartItem[]): CartItem[] {
+  const merged = [...userCart];
+  for (const guestItem of guestCart) {
+    const existing = merged.find(item => item.product.id === guestItem.product.id);
+    if (existing) {
+      existing.quantity += guestItem.quantity;
+    } else {
+      merged.push({ ...guestItem });
+    }
+  }
+  return merged;
+}
+
+interface CartProviderProps {
+  children: ReactNode;
+  userId?: string;
+}
+
+export const CartProvider = ({ children, userId }: CartProviderProps) => {
+  const [cart, setCart] = useState<CartItem[]>(() => loadCart(userId));
+  const prevUserId = useRef<string | undefined>(userId);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
-    saveCart(cart);
-  }, [cart]);
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    if (prevUserId.current !== userId) {
+      if (userId && !prevUserId.current) {
+        const guestCart = loadCart();
+        const userCart = loadCart(userId);
+        const merged = mergeCarts(guestCart, userCart);
+        setCart(merged);
+        saveCart(merged, userId);
+        clearCartKey();
+      } else if (!userId && prevUserId.current) {
+        setCart([]);
+      } else if (userId && prevUserId.current && userId !== prevUserId.current) {
+        const newCart = loadCart(userId);
+        setCart(newCart);
+      }
+      prevUserId.current = userId;
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (!isInitialMount.current) {
+      saveCart(cart, userId);
+    }
+  }, [cart, userId]);
 
   const addToCart = useCallback((product: Product) => {
     setCart(prev => {

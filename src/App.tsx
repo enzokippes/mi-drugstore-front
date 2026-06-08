@@ -80,17 +80,22 @@ const AppRoutes = () => (
   </Routes>
 );
 
+function CartProviderWrapper({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  return <CartProvider userId={user?.id}>{children}</CartProvider>;
+}
+
 function App() {
   return (
     <AuthProvider>
-      <CartProvider>
+      <CartProviderWrapper>
         <ToastProvider>
           <a href="#main-content" className="skip-nav">Saltar al contenido</a>
           <Router>
             <AppRoutes />
           </Router>
         </ToastProvider>
-      </CartProvider>
+      </CartProviderWrapper>
     </AuthProvider>
   );
 }
