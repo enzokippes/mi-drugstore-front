@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { Plus, Edit2, Trash2, Package, Tag, Eye, Percent, Star, ChevronDown, AlertTriangle } from 'lucide-react';
@@ -25,10 +25,9 @@ export default function Dashboard() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [trackInventory, setTrackInventory] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => { fetchData(); }, []);
-
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     try {
       const [productsRes, categoriesRes, settingsRes] = await Promise.all([
         api.get('/products'),
@@ -46,9 +45,10 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   async function handleToggleFeatured(id: string, current: boolean) {
     try {

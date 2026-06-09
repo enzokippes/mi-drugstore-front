@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/useToast';
 import { Package, Truck, Store as StoreIcon, Clock, CheckCircle, XCircle, Navigation, Search, ChevronLeft, ChevronRight, Calendar, Filter } from 'lucide-react';
 import type { Order, PaginatedResponse } from '../types';
 
@@ -29,7 +29,7 @@ export default function OrderManagement() {
 
   const totalPages = total > 0 ? Math.ceil(total / limit) : 1;
 
-  async function fetchOrders() {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -69,11 +69,10 @@ export default function OrderManagement() {
       setLoading(false);
       setInitialLoad(false);
     }
-  }
+  }, [page, limit, statusFilter, deliveryTypeFilter, search, dateFrom, dateTo, showToast]);
 
-  useEffect(() => {
-    fetchOrders();
-  }, [page, statusFilter, deliveryTypeFilter]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -81,7 +80,7 @@ export default function OrderManagement() {
       fetchOrders();
     }, 500);
     return () => clearTimeout(debounce);
-  }, [search, dateFrom, dateTo]);
+  }, [search, dateFrom, dateTo, fetchOrders]);
 
   async function updateStatus(orderId: string, status: string) {
     try {

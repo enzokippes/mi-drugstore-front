@@ -127,7 +127,7 @@ const CheckoutSheet = memo(function CheckoutSheet({
     setDeliveryTime('');
     setSelectedZone('');
     setError('');
-  }, [deliveryType, selectedZone, address, phone, deliveryTime, onCheckout, onClose]);
+  }, [deliveryType, selectedZone, address, phone, notes, deliveryTime, onCheckout, onClose]);
 
   if (cartCount === 0) return null;
 

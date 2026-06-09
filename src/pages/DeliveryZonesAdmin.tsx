@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit2, Trash2, MapPin, ToggleLeft, ToggleRight } from 'lucide-react';
 import api from '../services/api';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/useToast';
 import type { DeliveryZone } from '../types';
 
 export default function DeliveryZonesAdmin() {
@@ -13,15 +13,16 @@ export default function DeliveryZonesAdmin() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', basePrice: 0, surcharge: 0, maxDistanceKm: 0, active: true });
 
-  useEffect(() => { fetchZones(); }, []);
-
-  async function fetchZones() {
+  const fetchZones = useCallback(async () => {
     try {
       const res = await api.get('/delivery-zones');
       setZones(res.data);
     } catch { showToast('Error al cargar zonas', 'error'); }
     finally { setLoading(false); }
-  }
+  }, [showToast]);
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchZones(); }, [fetchZones]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
