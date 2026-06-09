@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit2, Trash2, Gift, Star, ToggleLeft, ToggleRight, TrendingUp } from 'lucide-react';
 import api from '../services/api';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/useToast';
 import type { PointReward, Product } from '../types';
 
 export default function RewardsAdmin() {

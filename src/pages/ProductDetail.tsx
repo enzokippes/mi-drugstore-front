@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Plus, Minus, ShoppingCart, Star, Package } from 'lucide-react';
 import api from '../services/api';
-import { useCart } from '../context/CartContext';
-import { useToast } from '../components/Toast';
+import { useCart } from '../context/useCart';
+import { useToast } from '../components/useToast';
 import { getImageUrl } from '../utils/imageUrl';
 import type { Product } from '../types';
 

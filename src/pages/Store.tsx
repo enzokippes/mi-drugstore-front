@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
-import { useToast } from '../components/Toast';
+import { useAuth } from '../context/useAuth';
+import { useCart } from '../context/useCart';
+import { useToast } from '../components/useToast';
 import StoreHeader from '../components/store/StoreHeader';
 import QuickSearch from '../components/store/QuickSearch';
 import FeaturedSection from '../components/store/FeaturedSection';

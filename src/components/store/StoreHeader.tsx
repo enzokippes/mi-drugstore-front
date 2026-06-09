@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MapPin, ShoppingCart, LayoutDashboard, Package, LogOut, Percent, Star, User, Menu, X, ChevronRight, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 
 interface StoreHeaderProps {
   cartCount: number;

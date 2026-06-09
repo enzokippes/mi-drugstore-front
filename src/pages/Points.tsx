@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Star, Gift, History, ArrowLeft, Trophy, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/useToast';
 import type { UserPoints, LoyaltyPointEntry, PointReward } from '../types';
 
 export default function Points() {

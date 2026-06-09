@@ -3,8 +3,8 @@ import { ArrowLeft, Percent, Plus, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { getImageUrl } from '../utils/imageUrl';
-import { useCart } from '../context/CartContext';
-import { useToast } from '../components/Toast';
+import { useCart } from '../context/useCart';
+import { useToast } from '../components/useToast';
 
 interface Promotion {
   id: string;

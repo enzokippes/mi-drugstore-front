@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, MapPin, Plus, Trash2, Edit2, User as UserIcon } from 'lucide-react';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../components/Toast';
+import { useAuth } from '../context/useAuth';
+import { useToast } from '../components/useToast';
 import type { Address, DeliveryZone } from '../types';
 
 export default function Profile() {

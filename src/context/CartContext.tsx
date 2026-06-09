@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { createContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Product, CartItem } from '../types';
 
@@ -12,7 +12,8 @@ interface CartContextType {
   clearCart: () => void;
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+// eslint-disable-next-line react-refresh/only-export-components
+export const CartContext = createContext<CartContextType | undefined>(undefined);
 
 function getCartKey(userId?: string): string {
   return userId ? `barbanegra_cart_${userId}` : 'barbanegra_cart';
@@ -162,12 +163,4 @@ export const CartProvider = ({ children, userId }: CartProviderProps) => {
       {children}
     </CartContext.Provider>
   );
-};
-
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
 };
