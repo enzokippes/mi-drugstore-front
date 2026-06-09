@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './components/Toast';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -24,6 +25,7 @@ import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import DeliveryZonesAdmin from './pages/DeliveryZonesAdmin';
 import RewardsAdmin from './pages/RewardsAdmin';
+import NotFound from './pages/NotFound';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -76,7 +78,7 @@ const AppRoutes = () => (
     <Route path="/promotions" element={<AdminRoute><Layout><PromotionList /></Layout></AdminRoute>} />
     <Route path="/promotions/new" element={<AdminRoute><Layout><PromotionForm /></Layout></AdminRoute>} />
     <Route path="/promotions/edit/:id" element={<AdminRoute><Layout><PromotionForm /></Layout></AdminRoute>} />
-    <Route path="*" element={<Navigate to="/" />} />
+    <Route path="*" element={<NotFound />} />
   </Routes>
 );
 
@@ -87,16 +89,18 @@ function CartProviderWrapper({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProviderWrapper>
-        <ToastProvider>
-          <a href="#main-content" className="skip-nav">Saltar al contenido</a>
-          <Router>
-            <AppRoutes />
-          </Router>
-        </ToastProvider>
-      </CartProviderWrapper>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <CartProviderWrapper>
+          <ToastProvider>
+            <a href="#main-content" className="skip-nav">Saltar al contenido</a>
+            <Router>
+              <AppRoutes />
+            </Router>
+          </ToastProvider>
+        </CartProviderWrapper>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
