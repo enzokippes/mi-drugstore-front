@@ -30,7 +30,7 @@ const ProductForm = () => {
         if (!isEditMode && response.data.length > 0) {
           setFormData(prev => ({ ...prev, categoryId: response.data[0].id }));
         }
-      } catch (error) {
+      } catch {
         console.error('Failed to fetch categories');
       } finally {
         setLoadingCategories(false);
@@ -47,7 +47,7 @@ const ProductForm = () => {
           const { name, description, price, stock, categoryId, unlimitedStock, image, isCombo } = response.data;
           setFormData({ name, description: description || '', price: price.toString(), stock: stock.toString(), categoryId, unlimitedStock: unlimitedStock || false, isCombo: isCombo || false });
           if (image) setExistingImage(image);
-        } catch (error) {
+        } catch {
           setError('Error al cargar el producto.');
         }
       };
@@ -104,8 +104,9 @@ const ProductForm = () => {
         await api.post('/products', submitData, config);
       }
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al guardar el producto.');
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      setError(axiosErr.response?.data?.message || 'Error al guardar el producto.');
     } finally {
       setLoading(false);
     }

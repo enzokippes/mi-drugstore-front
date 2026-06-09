@@ -17,7 +17,7 @@ const CategoryForm = () => {
         try {
           const response = await api.get(`/categories/${id}`);
           setName(response.data.name);
-        } catch (error) {
+        } catch {
           setError('Error al cargar la categoría.');
         }
       };
@@ -36,8 +36,9 @@ const CategoryForm = () => {
         await api.post('/categories', { name });
       }
       navigate('/categories');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al guardar.');
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      setError(axiosErr.response?.data?.message || 'Error al guardar.');
     } finally {
       setLoading(false);
     }
