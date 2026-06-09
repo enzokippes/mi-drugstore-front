@@ -24,12 +24,14 @@ src/
 │   └── CartContext.tsx      # Global shopping cart
 ├── components/
 │   ├── AdminNav.tsx         # Admin navigation with hamburger menu
+│   ├── ErrorBoundary.tsx    # React error boundary for graceful error handling
 │   ├── Layout.tsx           # Admin layout wrapper
 │   ├── Navbar.tsx           # Navbar component (currently unused)
 │   ├── Toast.tsx            # Toast notification system
 │   └── store/
+│       ├── CartItemRow.tsx   # Memoized cart item row component
 │       ├── CategoryTabs.tsx  # Category filter with mobile bottom sheet
-│       ├── CheckoutSheet.tsx # Cart and checkout bottom sheet
+│       ├── CheckoutSheet.tsx # Cart and checkout side drawer
 │       ├── CombosSection.tsx # Combo products section
 │       ├── FeaturedSection.tsx # Featured products section
 │       ├── Footer.tsx         # Store footer with info columns
@@ -44,6 +46,7 @@ src/
 │       ├── StoreHeader.tsx   # Store header with mobile hamburger menu
 │       └── WhatsAppButton.tsx # WhatsApp contact button
 ├── pages/
+│   ├── NotFound.tsx         # 404 page
 │   ├── Store.tsx            # Main store (public)
 │   ├── Login.tsx            # User login
 │   ├── Register.tsx          # User registration
@@ -72,6 +75,7 @@ src/
 │   └── index.ts             # Shared TypeScript interfaces
 ├── utils/
 │   ├── categoryEmojis.ts    # Category emoji mapping
+│   ├── env.ts               # Environment variable validation
 │   └── imageUrl.ts          # Image URL helper
 ├── App.tsx                  # Routes and providers
 ├── main.tsx                 # Entry point
@@ -93,6 +97,8 @@ VITE_API_URL="http://localhost:3000"
 ```
 
 In production, replace with your deployed backend URL.
+
+**Note:** The app validates environment variables on startup. Missing required variables will cause the app to fail with a clear error message.
 
 ## Installation
 
@@ -166,7 +172,7 @@ Mobile-first approach with adaptive layouts:
 |---------|---------|--------|
 | **Navigation** | Full navbar with all links | Hamburger menu with drawer |
 | **Categories** | Horizontal tabs | Bottom sheet with swipe |
-| **Cart/Checkout** | Page view | Bottom sheet overlay |
+| **Cart/Checkout** | Side drawer | Side drawer panel |
 | **Product Grid** | 4 columns | 2 columns |
 | **Bottom Nav** | Hidden | Fixed bar with cart + links |
 | **Admin Menu** | Sidebar + top bar | Collapsible drawer |
@@ -183,8 +189,8 @@ Mobile-first approach with adaptive layouts:
   - Horizontal scrollable tabs on desktop
 
 - **CheckoutSheet** (`src/components/store/CheckoutSheet.tsx`)
-  - Bottom sheet on mobile for cart and checkout
-  - Full page on desktop
+  - Side drawer panel for cart and checkout (slides from right)
+  - Inline delivery form expansion when delivery is selected
 
 - **Footer** (`src/components/store/Footer.tsx`)
   - 4 columns: about, links, contact, payment methods
@@ -197,6 +203,24 @@ Mobile-first approach with adaptive layouts:
 - **AdminNav** (`src/components/AdminNav.tsx`)
   - Hamburger menu for mobile admin navigation
   - Side drawer with admin links
+
+## Error Handling & Production Readiness
+
+- **ErrorBoundary** (`src/components/ErrorBoundary.tsx`)
+  - Catches React errors and displays fallback UI
+  - Allows users to reload the page or navigate home
+
+- **404 Page** (`src/pages/NotFound.tsx`)
+  - Custom page for invalid routes
+  - Provides clear feedback and navigation options
+
+- **Environment Validation** (`src/utils/env.ts`)
+  - Validates required environment variables on app startup
+  - Prevents app from running with missing configuration
+
+- **API Error Logging** (`src/services/api.ts`)
+  - Logs non-401 API errors to console for debugging
+  - Automatic 401 handling redirects to login
 
 ## Accessibility
 
