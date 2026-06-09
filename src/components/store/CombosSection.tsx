@@ -40,14 +40,14 @@ export default function CombosSection({ products, onAdd }: CombosSectionProps) {
         {combos.map(product => (
           <div key={product.id} className="min-w-[260px] md:min-w-[320px] shrink-0 snap-start bg-surface-light border border-surface-border rounded-xl overflow-hidden card-hover group">
             <Link to={`/producto/${product.id}`} className="block">
-              <div className="h-48 bg-surface-lighter flex items-center justify-center overflow-hidden relative">
+              <div className="h-36 md:h-48 bg-surface-lighter flex items-center justify-center overflow-hidden relative">
                 {product.image ? (
                   <img
                     src={getImageUrl(product.image)}
                     alt={product.name}
                     loading="lazy"
                     decoding="async"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center text-surface-muted">
