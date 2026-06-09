@@ -71,6 +71,7 @@ export const CartProvider = ({ children, userId }: CartProviderProps) => {
   const [cart, setCart] = useState<CartItem[]>(() => loadCart(userId));
   const prevUserId = useRef<string | undefined>(userId);
   const isInitialMount = useRef(true);
+  const pendingWriteRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isInitialMount.current) {
@@ -98,8 +99,19 @@ export const CartProvider = ({ children, userId }: CartProviderProps) => {
 
   useEffect(() => {
     if (!isInitialMount.current) {
-      saveCart(cart, userId);
+      if (pendingWriteRef.current) {
+        clearTimeout(pendingWriteRef.current);
+      }
+      pendingWriteRef.current = setTimeout(() => {
+        saveCart(cart, userId);
+        pendingWriteRef.current = null;
+      }, 50);
     }
+    return () => {
+      if (pendingWriteRef.current) {
+        clearTimeout(pendingWriteRef.current);
+      }
+    };
   }, [cart, userId]);
 
   const addToCart = useCallback((product: Product) => {

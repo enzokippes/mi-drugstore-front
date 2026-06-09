@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { X, Minus, Plus, CheckCircle, Trash2, Store as StoreIcon, Truck, MapPin } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { X, CheckCircle, Trash2, Store as StoreIcon, Truck, MapPin } from 'lucide-react';
 import api from '../../services/api';
 import type { DeliveryZone, Address } from '../../types';
+import CartItemRow from './CartItemRow';
 
 interface Product {
   id: string;
@@ -29,7 +30,7 @@ interface CheckoutSheetProps {
   onClose: () => void;
 }
 
-export default function CheckoutSheet({
+const CheckoutSheet = memo(function CheckoutSheet({
   cart,
   cartTotal,
   cartCount,
@@ -94,19 +95,22 @@ export default function CheckoutSheet({
     }
   }, [deliveryType, zones, selectedZone]);
 
-  const selectedZoneData = zones.find(z => z.id === selectedZone);
-  const deliveryCost = selectedZoneData ? selectedZoneData.basePrice + selectedZoneData.surcharge : 0;
-  const finalTotal = cartTotal + (deliveryType === 'delivery' ? deliveryCost : 0);
+  const selectedZoneData = useMemo(() => zones.find(z => z.id === selectedZone), [zones, selectedZone]);
+  const deliveryCost = useMemo(() => selectedZoneData ? selectedZoneData.basePrice + selectedZoneData.surcharge : 0, [selectedZoneData]);
+  const finalTotal = useMemo(() => cartTotal + (deliveryType === 'delivery' ? deliveryCost : 0), [cartTotal, deliveryType, deliveryCost]);
 
-  function selectSavedAddress(addr: Address) {
+  const selectSavedAddress = useCallback((addr: Address) => {
     setAddress(`${addr.street} ${addr.number}`);
     setNotes(addr.notes || '');
     if (addr.zoneId) setSelectedZone(addr.zoneId);
-  }
+  }, []);
 
-  if (cartCount === 0) return null;
+  const handleClose = useCallback(() => {
+    onClose();
+    setError('');
+  }, [onClose]);
 
-  function handleConfirm() {
+  const handleConfirm = useCallback(() => {
     setError('');
     if (deliveryType === 'delivery') {
       if (!selectedZone) { setError('Selecciona una zona de entrega'); return; }
@@ -123,17 +127,14 @@ export default function CheckoutSheet({
     setDeliveryTime('');
     setSelectedZone('');
     setError('');
-  }
+  }, [deliveryType, selectedZone, address, phone, deliveryTime, onCheckout, onClose]);
 
-  function handleClose() {
-    onClose();
-    setError('');
-  }
+  if (cartCount === 0) return null;
 
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={handleClose}>
+        <div className="fixed inset-0 z-50 bg-black/60 md:backdrop-blur-sm" onClick={handleClose}>
           <div
             className="absolute right-0 top-0 h-full w-full md:w-[400px] bg-surface-dark border-l border-surface-border flex flex-col transition-transform duration-300"
             onClick={e => e.stopPropagation()}
@@ -150,35 +151,12 @@ export default function CheckoutSheet({
 
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
               {cart.map(item => (
-                <div key={item.product.id} className="flex items-center gap-2 bg-surface-light rounded-lg p-2.5 border border-surface-border">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white text-xs truncate">{item.product.name}</p>
-                    <p className="text-gold-400 font-semibold text-xs mt-0.5">
-                      ${(item.product.price * item.quantity).toLocaleString('es-AR')}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 bg-surface border border-surface-border rounded-lg p-0.5">
-                    <button
-                      onClick={() => onUpdateQuantity(item.product.id, -1)}
-                      className="p-1 text-surface-muted hover:text-white transition-colors"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </button>
-                    <span className="w-5 text-center font-bold text-xs text-white">{item.quantity}</span>
-                    <button
-                      onClick={() => onUpdateQuantity(item.product.id, 1)}
-                      className="p-1 text-surface-muted hover:text-white transition-colors"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => onRemoveItem(item.product.id)}
-                    className="p-1 text-surface-muted hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                <CartItemRow
+                  key={item.product.id}
+                  item={item}
+                  onUpdateQuantity={onUpdateQuantity}
+                  onRemoveItem={onRemoveItem}
+                />
               ))}
 
               <button
@@ -366,4 +344,6 @@ export default function CheckoutSheet({
       )}
     </>
   );
-}
+});
+
+export default CheckoutSheet;

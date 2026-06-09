@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -89,20 +89,20 @@ export default function Store() {
     setSearchQuery(query);
   }, []);
 
-  function handleAddToCart(product: Product) {
+  const handleAddToCart = useCallback((product: Product) => {
     addToCart(product);
     showToast(`${product.name} agregado`, 'success');
-  }
+  }, [addToCart, showToast]);
 
-  function handleCategorySelect(categoryId: string | null) {
+  const handleCategorySelect = useCallback((categoryId: string | null) => {
     setSelectedCategory(categoryId);
     const element = document.getElementById('products-anchor');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }
+  }, []);
 
-  function handleCategorySelectByName(categoryName: string | null) {
+  const handleCategorySelectByName = useCallback((categoryName: string | null) => {
     if (!categoryName) {
       setSelectedCategory(null);
       return;
@@ -115,16 +115,16 @@ export default function Store() {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }
+  }, [categories]);
 
-  async function handleCheckout(
+  const handleCheckout = useCallback(async (
     deliveryType: 'pickup' | 'delivery',
     address: string,
     phone: string,
     notes: string,
     deliveryTime: string,
     deliveryZoneId?: string
-  ) {
+  ) => {
     if (cart.length === 0) return;
     if (deliveryType === 'delivery') {
       if (!address.trim()) { showToast('Ingresa tu direccion', 'error'); return; }
@@ -158,9 +158,9 @@ export default function Store() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [cart, cartTotal, showToast, clearCart]);
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = useMemo(() => products.filter(product => {
     const matchesSearch = !searchQuery || product.name.toLowerCase().includes(searchQuery.toLowerCase());
     let matchesCategory = true;
     if (selectedCategory) {
@@ -173,16 +173,29 @@ export default function Store() {
       }
     }
     return matchesSearch && matchesCategory;
-  });
+  }), [products, searchQuery, selectedCategory, categories]);
+
+  const searchProducts = useMemo(
+    () => products.map(p => ({ id: p.id, name: p.name, price: p.price })),
+    [products]
+  );
+
+  const handleOpenCart = useCallback(() => {
+    if (cartCount === 0) { showToast('Carrito vacio!', 'error'); return; }
+    setCartOpen(true);
+  }, [cartCount, showToast]);
+
+  const handleDeliveryCTA = useCallback(() => {
+    if (!isAuthenticated) { navigate('/login'); return; }
+    if (cartCount === 0) { showToast('Carrito vacío!', 'error'); return; }
+    setCartOpen(true);
+  }, [isAuthenticated, cartCount, showToast, navigate]);
 
   return (
     <div className="min-h-screen bg-surface">
       <StoreHeader
         cartCount={cartCount}
-        onCartClick={() => {
-          if (cartCount === 0) { showToast('Carrito vacio!', 'error'); return; }
-          setCartOpen(true);
-        }}
+        onCartClick={handleOpenCart}
         onCategoryClick={handleCategorySelectByName}
       />
 
@@ -199,7 +212,7 @@ export default function Store() {
         <div className="sticky top-16 lg:top-20 z-40 bg-surface/95 backdrop-blur-md py-3 border-b border-surface-border">
           <div className="max-w-7xl mx-auto px-4 flex flex-col gap-3">
             <QuickSearch
-              products={products.map(p => ({ id: p.id, name: p.name, price: p.price }))}
+              products={searchProducts}
               onSelect={(productId) => {
                 setSelectedCategory(null);
                 setSearchQuery(products.find(p => p.id === productId)?.name || '');
@@ -258,11 +271,7 @@ export default function Store() {
               </div>
             </div>
             <button
-              onClick={() => {
-                if (!isAuthenticated) { navigate('/login'); return; }
-                if (cartCount === 0) { showToast('Carrito vacío!', 'error'); return; }
-                setCartOpen(true);
-              }}
+              onClick={handleDeliveryCTA}
               className="flex items-center gap-2 px-5 py-2.5 gold-gradient text-surface-dark rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
             >
               {isAuthenticated ? 'Ir al carrito' : 'Ingresá para pedir'}
@@ -275,7 +284,7 @@ export default function Store() {
         <Footer />
       </main>
 
-      <MobileBottomNav cartCount={cartCount} onCartClick={() => setCartOpen(true)} />
+      <MobileBottomNav cartCount={cartCount} onCartClick={handleOpenCart} />
 
       {cartOpen && (
         <CheckoutSheet

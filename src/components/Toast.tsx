@@ -14,6 +14,18 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+const TOAST_ICONS = {
+  success: <CheckCircle className="h-5 w-5 text-green-400" />,
+  error: <AlertCircle className="h-5 w-5 text-red-400" />,
+  info: <Info className="h-5 w-5 text-blue-400" />,
+};
+
+const TOAST_BG = {
+  success: 'bg-gray-900 border-green-500/30',
+  error: 'bg-gray-900 border-red-500/30',
+  info: 'bg-gray-900 border-blue-500/30',
+};
+
 let toastId = 0;
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
@@ -27,21 +39,9 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     }, 3000);
   }, []);
 
-  const removeToast = (id: number) => {
+  const removeToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
-
-  const icons = {
-    success: <CheckCircle className="h-5 w-5 text-green-400" />,
-    error: <AlertCircle className="h-5 w-5 text-red-400" />,
-    info: <Info className="h-5 w-5 text-blue-400" />,
-  };
-
-  const bgColors = {
-    success: 'bg-gray-900 border-green-500/30',
-    error: 'bg-gray-900 border-red-500/30',
-    info: 'bg-gray-900 border-blue-500/30',
-  };
+  }, []);
 
   return (
     <ToastContext.Provider value={{ showToast }}>
@@ -50,9 +50,9 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`${bgColors[toast.type]} text-white px-4 py-3 rounded-xl shadow-2xl border flex items-center gap-3 min-w-[280px] max-w-sm pointer-events-auto animate-slide-in-right`}
+            className={`${TOAST_BG[toast.type]} text-white px-4 py-3 rounded-xl shadow-2xl border flex items-center gap-3 min-w-[280px] max-w-sm pointer-events-auto animate-slide-in-right`}
           >
-            {icons[toast.type]}
+            {TOAST_ICONS[toast.type]}
             <span className="text-sm font-medium flex-1">{toast.message}</span>
             <button
               onClick={() => removeToast(toast.id)}
