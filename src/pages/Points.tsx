@@ -3,16 +3,17 @@ import { Star, Gift, History, ArrowLeft, Trophy, TrendingUp } from 'lucide-react
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useToast } from '../components/useToast';
+import { useCart } from '../context/useCart';
 import type { UserPoints, LoyaltyPointEntry, PointReward } from '../types';
 
 export default function Points() {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { addRewardToCart } = useCart();
   const [points, setPoints] = useState<UserPoints>({ totalPoints: 0 });
   const [history, setHistory] = useState<LoyaltyPointEntry[]>([]);
   const [rewards, setRewards] = useState<PointReward[]>([]);
   const [loading, setLoading] = useState(true);
-  const [redeeming, setRedeeming] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,24 +36,17 @@ export default function Points() {
     return () => { cancelled = true; };
   }, []);
 
-  async function handleRedeem(rewardId: string) {
-    setRedeeming(rewardId);
-    try {
-      await api.post('/loyalty/redeem', { rewardId });
-      showToast('Puntos canjeados con exito! Revisa tus pedidos', 'success');
-      const [pointsRes, historyRes] = await Promise.all([
-        api.get('/loyalty/my-points'),
-        api.get('/loyalty/history'),
-      ]);
-      setPoints(pointsRes.data);
-      setHistory(historyRes.data);
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      const msg = typeof axiosErr === 'object' && axiosErr !== null ? axiosErr.response?.data?.message : undefined;
-      showToast(msg || 'Error al canjear puntos', 'error');
-    } finally {
-      setRedeeming(null);
+  function handleRedeem(reward: PointReward) {
+    if (!reward.productId || !reward.product) {
+      showToast('Esta recompensa no tiene producto asociado', 'error');
+      return;
     }
+    if (points.totalPoints < reward.pointsCost) {
+      showToast('Puntos insuficientes', 'error');
+      return;
+    }
+    addRewardToCart(reward.product, reward.id, reward.pointsCost);
+    showToast(`${reward.name} agregado al carrito`, 'success');
   }
 
   if (loading) {
@@ -113,18 +107,18 @@ export default function Points() {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleRedeem(reward.id)}
-                    disabled={!canAfford || redeeming === reward.id}
+                    onClick={() => handleRedeem(reward)}
+                    disabled={!canAfford || !reward.product}
                     className={`w-full mt-3 py-2 rounded-xl text-sm font-semibold transition-all ${
-                      canAfford
+                      canAfford && reward.product
                         ? 'gold-gradient text-gray-950 hover:opacity-90'
                         : 'bg-gray-800 text-gray-500 cursor-not-allowed'
                     }`}
                   >
-                    {redeeming === reward.id ? (
-                      <span className="animate-spin inline-block w-4 h-4 border-2 border-gray-950/30 border-t-gray-950 rounded-full" />
-                    ) : canAfford ? (
-                      'Canjear'
+                    {canAfford && reward.product ? (
+                      'Agregar al carrito'
+                    ) : !reward.product ? (
+                      'Sin producto'
                     ) : (
                       'Puntos insuficientes'
                     )}

@@ -32,6 +32,9 @@ export interface Product {
 export interface CartItem {
   product: Product;
   quantity: number;
+  isReward?: boolean;
+  rewardId?: string;
+  rewardPointsCost?: number;
 }
 
 export interface OrderItem {

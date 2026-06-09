@@ -13,6 +13,9 @@ interface Product {
 interface CartItem {
   product: Product;
   quantity: number;
+  isReward?: boolean;
+  rewardId?: string;
+  rewardPointsCost?: number;
 }
 
 interface CheckoutSheetProps {
@@ -98,6 +101,12 @@ const CheckoutSheet = memo(function CheckoutSheet({
   const selectedZoneData = useMemo(() => zones.find(z => z.id === selectedZone), [zones, selectedZone]);
   const deliveryCost = useMemo(() => selectedZoneData ? selectedZoneData.basePrice + selectedZoneData.surcharge : 0, [selectedZoneData]);
   const finalTotal = useMemo(() => cartTotal + (deliveryType === 'delivery' ? deliveryCost : 0), [cartTotal, deliveryType, deliveryCost]);
+
+  const totalRewardPoints = useMemo(() => {
+    return cart
+      .filter(item => item.isReward && item.rewardPointsCost)
+      .reduce((sum, item) => sum + (item.rewardPointsCost || 0), 0);
+  }, [cart]);
 
   const selectSavedAddress = useCallback((addr: Address) => {
     setAddress(`${addr.street} ${addr.number}`);
@@ -314,6 +323,12 @@ const CheckoutSheet = memo(function CheckoutSheet({
                   <div className="flex justify-between items-center">
                     <span className="text-surface-muted text-xs">Envio ({selectedZoneData.name})</span>
                     <span className="text-white text-xs">${deliveryCost.toLocaleString('es-AR')}</span>
+                  </div>
+                )}
+                {totalRewardPoints > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-yellow-400 text-xs">Puntos a descontar</span>
+                    <span className="text-yellow-400 text-xs">-{totalRewardPoints} pts</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center pt-1">

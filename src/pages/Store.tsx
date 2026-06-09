@@ -134,6 +134,13 @@ export default function Store() {
 
     setLoading(true);
     try {
+      const rewardItems = cart
+        .filter(item => item.isReward && item.rewardId && item.rewardPointsCost)
+        .map(item => ({
+          rewardId: item.rewardId!,
+          pointsCost: item.rewardPointsCost!,
+        }));
+
       await api.post('/orders', {
         total: cartTotal,
         items: cart.map(item => ({
@@ -141,6 +148,7 @@ export default function Store() {
           quantity: item.quantity,
           price: item.product.price,
         })),
+        rewardItems: rewardItems.length > 0 ? rewardItems : undefined,
         deliveryType: deliveryType.toUpperCase(),
         deliveryZoneId: deliveryType === 'delivery' ? deliveryZoneId : undefined,
         address: deliveryType === 'delivery' ? address : undefined,

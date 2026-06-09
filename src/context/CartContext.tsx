@@ -7,6 +7,7 @@ interface CartContextType {
   cartTotal: number;
   cartCount: number;
   addToCart: (product: Product) => void;
+  addRewardToCart: (product: { id: string; name: string; image?: string }, rewardId: string, pointsCost: number) => void;
   updateQuantity: (productId: string, delta: number) => void;
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
@@ -129,6 +130,22 @@ export const CartProvider = ({ children, userId }: CartProviderProps) => {
     });
   }, []);
 
+  const addRewardToCart = useCallback((product: { id: string; name: string; image?: string }, rewardId: string, pointsCost: number) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.product.id === product.id && item.isReward);
+      if (existing) {
+        return prev;
+      }
+      return [...prev, {
+        product: { ...product, price: 0, stock: 0, unlimitedStock: true, categoryId: '' },
+        quantity: 1,
+        isReward: true,
+        rewardId,
+        rewardPointsCost: pointsCost,
+      }];
+    });
+  }, []);
+
   const updateQuantity = useCallback((productId: string, delta: number) => {
     setCart(prev =>
       prev
@@ -159,7 +176,7 @@ export const CartProvider = ({ children, userId }: CartProviderProps) => {
   );
 
   return (
-    <CartContext.Provider value={{ cart, cartTotal, cartCount, addToCart, updateQuantity, removeFromCart, clearCart }}>
+    <CartContext.Provider value={{ cart, cartTotal, cartCount, addToCart, addRewardToCart, updateQuantity, removeFromCart, clearCart }}>
       {children}
     </CartContext.Provider>
   );
