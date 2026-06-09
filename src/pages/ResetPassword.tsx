@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { ArrowLeft, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
@@ -14,13 +14,7 @@ const ResetPassword = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (!token) {
-      setError('Token invalido o faltante');
-    }
-  }, [token]);
+  const [error, setError] = useState(!token ? 'Token invalido o faltante' : '');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

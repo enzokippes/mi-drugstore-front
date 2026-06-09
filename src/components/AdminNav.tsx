@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { LogOut, ShoppingBag, LayoutDashboard, ClipboardList, MapPin, Gift, BarChart3, Menu, X, ChevronRight } from 'lucide-react';
 
 interface NavItem {
@@ -26,8 +26,12 @@ export default function AdminNav() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
 
+  const prevPathRef = useRef(location.pathname);
   useEffect(() => {
-    setDrawerOpen(false);
+    if (prevPathRef.current !== location.pathname) {
+      prevPathRef.current = location.pathname;
+      setDrawerOpen(false);
+    }
   }, [location]);
 
   useEffect(() => {

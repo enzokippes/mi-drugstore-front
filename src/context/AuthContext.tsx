@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useState } from 'react';
 import type { ReactNode } from 'react';
 
 interface User {
@@ -18,23 +18,25 @@ interface AuthContextType {
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// eslint-disable-next-line react-refresh/only-export-components
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
+function getStoredAuth() {
+  try {
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
-
     if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+      return { token: storedToken, user: JSON.parse(storedUser) as User };
     }
-    setIsLoading(false);
-  }, []);
+  } catch { /* ignore */ }
+  return { token: null, user: null };
+}
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const storedAuth = getStoredAuth();
+  const [user, setUser] = useState<User | null>(storedAuth.user);
+  const [token, setToken] = useState<string | null>(storedAuth.token);
+  const [isLoading] = useState(false);
 
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
@@ -63,12 +65,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
