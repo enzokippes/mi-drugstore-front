@@ -30,14 +30,14 @@ src/
 │   ├── Toast.tsx            # Toast notification system
 │   └── store/
 │       ├── CartItemRow.tsx   # Memoized cart item row component
-│       ├── CategoryTabs.tsx  # Category filter with mobile bottom sheet
+│       ├── CategoryTabs.tsx  # Category filter (horizontal tabs desktop, dropdown mobile)
 │       ├── CheckoutSheet.tsx # Cart and checkout side drawer
 │       ├── CombosSection.tsx # Combo products section
 │       ├── FeaturedSection.tsx # Featured products section
 │       ├── Footer.tsx         # Store footer with info columns
 │       ├── LocationMap.tsx   # Store location map
 │       ├── MobileBottomNav.tsx # Fixed bottom nav for mobile
-│       ├── PaymentMethods.tsx # Payment methods display
+│       ├── PaymentMethods.tsx # Payment methods display (unused)
 │       ├── ProductCard.tsx   # Individual product card
 │       ├── ProductGrid.tsx   # Product grid layout
 │       ├── ProductSkeleton.tsx # Loading skeleton
@@ -171,10 +171,10 @@ Mobile-first approach with adaptive layouts:
 | Feature | Desktop | Mobile |
 |---------|---------|--------|
 | **Navigation** | Full navbar with all links | Hamburger menu with drawer |
-| **Categories** | Horizontal tabs | Bottom sheet with swipe |
+| **Categories** | Horizontal tabs | Dropdown menu |
 | **Cart/Checkout** | Side drawer | Side drawer panel |
 | **Product Grid** | 4 columns | 2 columns |
-| **Bottom Nav** | Hidden | Fixed bar with cart + links |
+| **Bottom Nav** | Hidden | Fixed bar: Inicio, Promos, Tienda, Pedidos |
 | **Admin Menu** | Sidebar + top bar | Collapsible drawer |
 
 #### Mobile-Specific Components
@@ -185,7 +185,7 @@ Mobile-first approach with adaptive layouts:
   - Touch-friendly cart button
 
 - **CategoryTabs** (`src/components/store/CategoryTabs.tsx`)
-  - Bottom sheet on mobile for category selection
+  - Dropdown menu on mobile for category selection
   - Horizontal scrollable tabs on desktop
 
 - **CheckoutSheet** (`src/components/store/CheckoutSheet.tsx`)
@@ -198,7 +198,7 @@ Mobile-first approach with adaptive layouts:
 
 - **MobileBottomNav** (`src/components/store/MobileBottomNav.tsx`)
   - Fixed bottom navigation bar on mobile
-  - Quick access to home, categories, cart
+  - Quick access to: Inicio, Promos, Tienda (con carrito), Pedidos
 
 - **AdminNav** (`src/components/AdminNav.tsx`)
   - Hamburger menu for mobile admin navigation
@@ -235,21 +235,13 @@ Mobile-first approach with adaptive layouts:
 
 ## Screenshots
 
-Replace these placeholder images with actual screenshots:
-
-| File | Description |
-|------|-------------|
-| `screenshots/store.png` | Main store with product grid |
-| `screenshots/admin-dashboard.png` | Admin dashboard with statistics |
-| `screenshots/mobile-store.png` | Mobile view showing hamburger menu |
-| `screenshots/points.png` | Points page with rewards list |
-| `screenshots/profile.png` | User profile with saved addresses |
-
-To capture screenshots:
-1. Open the application in your browser
-2. Take a screenshot of the relevant view
-3. Save as PNG to the `screenshots/` folder
-4. Replace the placeholder files
+| Vista | Imagen |
+|-------|--------|
+| Tienda principal | ![Store](screenshots/store.jpeg) |
+| Admin Dashboard | ![Admin Dashboard](screenshots/admin-dashboard.jpeg) |
+| Vista Mobile | ![Mobile Store](screenshots/mobile-store.jpeg) |
+| Puntos y Recompensas | ![Points](screenshots/points.jpeg) |
+| Perfil de Usuario | ![Profile](screenshots/profile.jpeg) |
 
 ## Scripts
 

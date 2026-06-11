@@ -47,7 +47,7 @@ export default function CategoryTabs({ categories, selected, onSelect }: Categor
 
   return (
     <div className="max-w-7xl mx-auto px-4">
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+      <div className="hidden md:flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
         <button
           onClick={handleAllClick}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap snap-start transition-all shrink-0 ${
