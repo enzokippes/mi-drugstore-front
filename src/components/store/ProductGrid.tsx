@@ -30,15 +30,17 @@ export default function ProductGrid({ products, onAdd, trackInventory }: Product
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 px-2 sm:px-3 justify-items-center">
-      {products.map(product => (
-        <ProductCard
-          key={product.id}
-          product={product}
-          onAdd={onAdd}
-          trackInventory={trackInventory}
-        />
-      ))}
+    <div className="max-w-[1400px] mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 px-2 sm:px-3">
+        {products.map(product => (
+          <ProductCard
+            key={product.id}
+            product={product}
+            onAdd={onAdd}
+            trackInventory={trackInventory}
+          />
+        ))}
+      </div>
     </div>
   );
 }
