@@ -25,7 +25,7 @@ export default function ProductCard({ product, onAdd, trackInventory }: ProductC
 
   return (
     <div
-      className={`bg-surface-light border border-surface-border rounded-lg overflow-hidden transition-all duration-300 group flex flex-col ${
+      className={`bg-surface-light border border-surface-border rounded-lg overflow-hidden transition-all duration-300 group flex flex-col w-full max-w-[220px] ${
         !available ? 'opacity-50 pointer-events-none' : 'hover:border-gold-400/40'
       }`}
     >
