@@ -76,7 +76,7 @@ export default function Store() {
         if (!cancelled) setFeaturedProducts(res.data);
       } catch { /* silent */ }
       try {
-        const res = await api.get('/settings');
+        const res = await api.get('/settings/public');
         if (!cancelled) setTrackInventory(res.data.trackInventory === 'true');
       } catch { /* silent */ }
       if (!cancelled) setInitialLoading(false);
